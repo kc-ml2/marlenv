@@ -24,11 +24,11 @@
 - [Getting Started](#getting_started)
 - [Deployment](#deployment)
 - [Usage](#usage)
-- [Built Using](#Dependencies)
-- [TODO](../TODO.md)
-- [Contributing](../CONTRIBUTING.md)
-- [Authors](#authors)
-- [Acknowledgments](#acknowledgement)
+- [Dependencies](#Dependencies)
+<!-- - [TODO](../TODO.md) -->
+<!-- - [Contributing](../CONTRIBUTING.md) -->
+<!-- - [Authors](#authors) -->
+<!-- - [Acknowledgments](#acknowledgement) -->
 
 ## 🧐 About <a name = "about"></a>
 
@@ -46,37 +46,37 @@ pip install -e .
 ```
 
 ---
+## ⛏️ Usage <a name = "Usage"></a>
+
+```
+python main.py --mode=[modeargs]
+```
+
+- To train models using baselines 
+- run trained model to visualize the result  
 
 ## ⛏️ Dependencies <a name = "Dependencies"></a>
 
-- [Gym](https://www.mongodb.com/) - version here
-- [baselines](https://expressjs.com/) - Server Framework
-- [pygames](https://vuejs.org/) - Web Framework
-- [Pillow](https://nodejs.org/en/) - Server Environment
-- []
+- [Gym](https://gym.openai.com/) - gym environment for RL envs
+- [baselines](https://github.com/openai/baselines/) - Reinforcement learning framework baselines
+- [pygames](https://www.pygame.org/) - Pygames framework for games ran in python
 
 
 ## 🔧 Running the tests <a name = "tests"></a>
 
-Explain how to run the automated tests for this system.
-
-### Break down into end to end tests
-
-Explain what these tests test and why
 
 ```
-Give an example
+pytest
 ```
 
-### And coding style tests
 
-Explain what these tests test and why
+## 🎈 Fully-trained snake game via docker 
+### Competition setting
+- Each of the agents' goal is to maximize its own reward
+- Snake reward is only given when it eats an apple(+1) and when it collides(-1). When a snake hits the wall or the body of the other snake it terminates the agent's game.
 
-```
-Give an example
-```
 
-## 🎈 Usage <a name="usage"></a>
+<!-- ## 🎈 Usage <a name="usage"></a>
 
 Add notes about how to use the system.
 
@@ -101,4 +101,4 @@ See also the list of [contributors](https://github.com/kylelobo/The-Documentatio
 
 - Hat tip to anyone whose code was used
 - Inspiration
-- References
+- References -->
