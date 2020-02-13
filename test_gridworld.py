@@ -1,6 +1,7 @@
 import gym
 import envs
 import pytest 
+import time 
 
 def test_gridPath():
 		
@@ -13,7 +14,7 @@ def test_gridPath():
 		obs, r, done, info = env.step([ env.action_space[i].sample() for i in range(env.n_agents)])
 
 		env.render_graphic()
-
+		# time.sleep(0.01)
 	env.render_graphic()
 
 	env.close()
@@ -28,6 +29,7 @@ def test_gridExplore():
 		obs, r, done, info = env.step([ env.action_space[i].sample() for i in range(env.n_agents)])
 
 		env.render_graphic()
+		time.sleep(0.01)
 
 	env.render_graphic()
 

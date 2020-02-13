@@ -1,5 +1,4 @@
 from stable_baselines import DQN, PPO2, A2C, ACKTR
-# from stable_baselines.bench import Monitor
 from stable_baselines.common.vec_env import DummyVecEnv, VecVideoRecorder
 from stable_baselines.common.policies import FeedForwardPolicy, register_policy, ActorCriticPolicy, CnnPolicy, MlpPolicy
 
@@ -219,27 +218,6 @@ def saveVideo(args):
         if done: 
             break
     imageio.mimsave('ppo2.gif', np.array(images), fps=15 )
-
-
-    # env = gym.make("GridExplore-v0")
-
-    # model = PPO2.load("ppo2_GridExplore.pth")
-    # images = []
-    # obs = env.reset()
-    # done = [False for i in range(4)] 
-    # while not all(done):
-    #         action, _ = model.predict(obs)
-    #         obs, reward, done, info = env.step(action)
-
-    #         images.append(env.render_graphic())
-    #         time.sleep(0.05)
-    
-    # images.append(env.render_graphic())
-
-    # env.close()
-
-    # images[0].save('out.gif', save_all=True, append_images=images)
-
 
 
 if __name__ == "__main__":

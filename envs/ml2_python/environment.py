@@ -6,7 +6,6 @@ from ml2_python.field import Field
 from ml2_python.python import Python
 import random
 import math
-import torch
 from PIL import Image
 
 class Action:
@@ -40,7 +39,7 @@ class ML2Python(gym.Env):
         self.num_players = len(self.field.players)
         self.playerpos = players
         self.visits = np.zeros((self.num_players, np.prod(self.field.size)))
-        # self.num_envs= 32
+
         self.num_fruits = num_fruits
         self.fruits = []
 
@@ -67,7 +66,6 @@ class ML2Python(gym.Env):
     def reset(self):
         
         if len(self.players)==1:
-
             #randomize snake's initial position 
             players = [
                 Python(Point(np.random.randint(3, 4, 1)[0],np.random.randint(3, 4, 1)[0]), random.choice(Direction.DIRECTIONLIST), 3)
@@ -180,13 +178,6 @@ class ML2Python(gym.Env):
                         rewards[idx] += Reward.KILL
                         self.epinfos['kills'][idx] += 1
         
-        # python = self.field.players[0]
-        # headpos = python.head.position()
-        # fruit = np.where(np.isin(self.field._cells, Cell.FRUIT))
-        # print(self.field._cells)
-        # print(self.field)
-        # print(headpos, fruit)
-
         # rewards[0] += 1 / self.distance(headpos, fruit) 
 
         # Check if done and calculate scores
@@ -214,10 +205,7 @@ class ML2Python(gym.Env):
         nextpos = python.next.position()
         (x, y) = np.where(self.field._cells == 1)
         fruitpos = (x[0],y[0])
-        # print(position, actionv, nextpos, fruitpos)
-        # print(self.field)
         state = np.array([position, actionv, nextpos, fruitpos]).flatten()
-        # print(state)
         return state
 
     def full_observation(self):
@@ -247,9 +235,7 @@ class ML2Python(gym.Env):
                 state[1] = body[idx] + wall
                 state[2] = fruit + wall
                 state[3] = wall
-        # for i in range(4):
-        #     state[0][i]=self.field._cells
-        # # print(self.field._cells)
+
         return state
 
     def encode(self):
@@ -268,6 +254,8 @@ class ML2Python(gym.Env):
 
         fruit = np.isin(self.field._cells, Cell.FRUIT).astype(np.float32)
         wall = np.isin(self.field._cells, Cell.WALL).astype(np.float32)
+
+        # give different numbers to each array
         fruit = fruit * 3
         wall = wall * 2
 
@@ -277,17 +265,15 @@ class ML2Python(gym.Env):
             if self.field.players[idx].alive:
                 state[idx][0] = self.get_vision(idx, body[idx]) + self.get_vision(idx, wall)
                 state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])*2 + self.get_vision(idx, wall)
-
-                # state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])
-                # state[idx][1] = fruit 
                 state[idx][2] = self.get_vision(idx, fruit)
                 state[idx][3] = self.get_vision(idx, wall) 
-                
-                # state[0] = self.get_vision(idx, body[idx])
-                # state[1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])
-                # state[2] = self.get_vision(idx, fruit)
-                # state[3] = self.get_vision(idx, wall) 
-        # print(state[0])
+
+                # Wall not included in body 
+                # state[idx][0] = self.get_vision(idx, body[idx])
+                # state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])
+                # state[idx][2] = self.get_vision(idx, fruit)
+                # state[idx][3] = self.get_vision(idx, wall) 
+
         return state
     
     def get_vision(self, idx, arr):
@@ -324,12 +310,6 @@ class ML2Python(gym.Env):
         image = np.asarray(image, dtype="uint8")
         print(self.field)
         return image
-
-
-    # def render(self):
-
-    #     return print(self.field)
-
 
     def distance(self, pos1, pos2): 
         return math.sqrt( (pos2[1] - pos1[1])**2 + (pos2[0]-pos1[0])**2 ) 
