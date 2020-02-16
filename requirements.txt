@@ -6,3 +6,4 @@ pygame==1.9.6
 stable-baselines>=2.9.0
 tensorflow==1.15.0
 Pillow==6.2.0
+imageio

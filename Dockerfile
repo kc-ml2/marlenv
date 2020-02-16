@@ -22,5 +22,7 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 CMD [ "python", "example.py",  "--mode=saveImage" ]
 
+CMD ["/bin/bash"]
+
 # RUN python example.py --mode=runGUI
 

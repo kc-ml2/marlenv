@@ -20,15 +20,17 @@
 
 ## 📝 Table of Contents
 
-- [About](#about)
-- [Getting Started](#getting_started)
-- [Deployment](#deployment)
-- [Usage](#usage)
-- [Dependencies](#Dependencies)
-<!-- - [TODO](../TODO.md) -->
-<!-- - [Contributing](../CONTRIBUTING.md) -->
-<!-- - [Authors](#authors) -->
-<!-- - [Acknowledgments](#acknowledgement) -->
+- [📝 Table of Contents](#%f0%9f%93%9d-table-of-contents)
+- [🧐 About <a name = "about"></a>](#%f0%9f%a7%90-about)
+- [🏁 Getting Started <a name = "getting_started"></a>](#%f0%9f%8f%81-getting-started)
+  - [Prerequisites](#prerequisites)
+- [⛏️ Usage <a name = "Usage"></a>](#%e2%9b%8f%ef%b8%8f-usage)
+- [⛏️ Dependencies <a name = "Dependencies"></a>](#%e2%9b%8f%ef%b8%8f-dependencies)
+- [🔧 Running the tests <a name = "tests"></a>](#%f0%9f%94%a7-running-the-tests)
+- [🎈 Fully-trained snake game](#%f0%9f%8e%88-fully-trained-snake-game)
+  - [Competition setting](#competition-setting)
+  - [To run trained model via example.py file](#to-run-trained-model-via-examplepy-file)
+  - [To run trained model via docker](#to-run-trained-model-via-docker)
 
 ## 🧐 About <a name = "about"></a>
 
@@ -45,7 +47,6 @@ To install requirements for this repo :
 pip install -e .
 ```
 
-To test the envs 
 ---
 ## ⛏️ Usage <a name = "Usage"></a>
 
@@ -108,6 +109,21 @@ docker run taemin410/ml2-python:terminal
 docker pull taemin410/ml2-python:saveImage
 
 docker run taemin410/ml2-python:saveImage
+
+#############################################
+#  if docker image stops after running      #
+#  try below script to run bash shell on    #
+#############################################
+
+docker run -it --entrypoint=/bin/bash [IMAGENAME]
+
+# in the bash shell script run
+
+python example.py --mode=saveImage
+
+# While the docker container is running copy file with
+
+docker cp [CONTAINER ID]:/marlenv/result.gif ./
 
 ```
 
