@@ -27,7 +27,8 @@ register(
     kwargs={
         'init_map': init_map,
         'players': players,
-        'num_fruits': 1
+        'num_fruits': 1,
+        'full_observation' : True
     }
 )
 

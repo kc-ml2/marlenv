@@ -45,22 +45,32 @@ To install requirements for this repo :
 pip install -e .
 ```
 
+To test the envs 
 ---
 ## ⛏️ Usage <a name = "Usage"></a>
 
-```
-python main.py --mode=[modeargs]
-```
 
-- To train models using baselines 
-- run trained model to visualize the result  
+```
+env = gym.make('python_1p-v0')
+
+env.reset()
+done = False
+while not done:
+    obs, reward, done, info = 
+      env.step([env.action_space.sample()])
+  
+    env.render()
+
+env.close()
+
+```
 
 ## ⛏️ Dependencies <a name = "Dependencies"></a>
 
 - [Gym](https://gym.openai.com/) - gym environment for RL envs
 - [baselines](https://github.com/openai/baselines/) - Reinforcement learning framework baselines
 - [pygames](https://www.pygame.org/) - Pygames framework for games ran in python
-
+- tensorflow, numpy, pytorch
 
 ## 🔧 Running the tests <a name = "tests"></a>
 
@@ -70,35 +80,34 @@ pytest
 ```
 
 
-## 🎈 Fully-trained snake game via docker 
+## 🎈 Fully-trained snake game  
 ### Competition setting
 - Each of the agents' goal is to maximize its own reward
 - Snake reward is only given when it eats an apple(+1) and when it collides(-1). When a snake hits the wall or the body of the other snake it terminates the agent's game.
 
 
-<!-- ## 🎈 Usage <a name="usage"></a>
+### To run trained model via example.py file
 
-Add notes about how to use the system.
+```
 
-## 🚀 Deployment <a name = "deployment"></a>
+python example.py --mode=runGUI
 
-Add additional notes about how to deploy this on a live system.
+```
 
-## ⛏️ Built Using <a name = "built_using"></a>
+### To run trained model via docker
 
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Express](https://expressjs.com/) - Server Framework
-- [VueJs](https://vuejs.org/) - Web Framework
-- [NodeJs](https://nodejs.org/en/) - Server Environment
+```
 
-## ✍️ Authors <a name = "authors"></a>
+docker pull taemin410/ml2-python:terminal
 
-- [@kylelobo](https://github.com/kylelobo) - Idea & Initial work
+docker run taemin410/ml2-python:terminal
 
-See also the list of [contributors](https://github.com/kylelobo/The-Documentation-Compendium/contributors) who participated in this project.
+-----------------------------------------------
+# To save gif image
 
-## 🎉 Acknowledgements <a name = "acknowledgement"></a>
+docker pull taemin410/ml2-python:saveImage
 
-- Hat tip to anyone whose code was used
-- Inspiration
-- References -->
+docker run taemin410/ml2-python:saveImage
+
+```
+

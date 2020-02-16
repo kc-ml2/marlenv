@@ -1,5 +1,6 @@
-from PIL import Image, ImageDraw
+"""modified from koulanurag/ma-gym"""
 
+from PIL import Image, ImageDraw
 
 def draw_grid(rows, cols, cell_size=50, fill='black', line_color='black'):
     height = rows * cell_size

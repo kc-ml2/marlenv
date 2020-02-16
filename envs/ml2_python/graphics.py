@@ -2,9 +2,6 @@
 import numpy as np
 import torch
 import pygame
-# from pygame.locals import *
-# import cv2
-# import sys
 
 from ml2_python.common import Cell, Direction
 from ml2_python.environment import Action

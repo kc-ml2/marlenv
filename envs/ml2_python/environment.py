@@ -4,6 +4,9 @@ from gym.spaces import Discrete, Box
 from ml2_python.common import Point, Cell, Direction
 from ml2_python.field import Field
 from ml2_python.python import Python
+from envs.utils.action_space import MultiAgentActionSpace
+from envs.utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
+
 import random
 import math
 from PIL import Image
@@ -30,7 +33,7 @@ class Reward:
 
 class ML2Python(gym.Env):
     # metadata = {'render.modes': ['rgb_array']}
-    def __init__(self, init_map, players=None, full_observation=True, vision_range=20, num_fruits=4):
+    def __init__(self, init_map, players=None, full_observation=False, vision_range=20, num_fruits=4):
         self.init_map = init_map
         self.players = players
         self.observability = full_observation
@@ -47,7 +50,7 @@ class ML2Python(gym.Env):
             self.observation_space = Box(
             low=0,
             high=255,
-            shape=(4, self.field.size[0], self.field.size[1]),
+            shape=(self.num_players, 4, self.field.size[0], self.field.size[1]),
             dtype=np.uint8
         )
         else:
@@ -59,7 +62,7 @@ class ML2Python(gym.Env):
                 dtype=np.uint8
             )
         
-        self.action_space = Discrete(5)
+        self.action_space = MultiAgentActionSpace([Discrete(5) for _ in range(self.num_players)])
 
         self.reset()
 
@@ -231,10 +234,10 @@ class ML2Python(gym.Env):
 
         for idx in range(self.num_players):
             if self.field.players[idx].alive:
-                state[0] = body[idx] + wall
-                state[1] = body[idx] + wall
-                state[2] = fruit + wall
-                state[3] = wall
+                state[idx][0] = body[idx] + wall
+                state[idx][1] = np.sum(body, axis=0) - body[idx] + wall
+                state[idx][2] = fruit + wall
+                state[idx][3] = wall
 
         return state
 
@@ -263,7 +266,7 @@ class ML2Python(gym.Env):
 
         for idx in range(self.num_players):
             if self.field.players[idx].alive:
-                state[idx][0] = self.get_vision(idx, body[idx]) + self.get_vision(idx, wall)
+                state[idx][0] = self.get_vision(idx, body[idx]) 
                 state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])*2 + self.get_vision(idx, wall)
                 state[idx][2] = self.get_vision(idx, fruit)
                 state[idx][3] = self.get_vision(idx, wall) 

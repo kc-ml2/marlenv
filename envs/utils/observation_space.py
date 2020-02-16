@@ -1,3 +1,5 @@
+"""modified from koulanurag/ma-gym"""
+
 import gym
 
 class MultiAgentObservationSpace(list):
