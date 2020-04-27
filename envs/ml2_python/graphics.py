@@ -65,9 +65,6 @@ class ML2PythonGUI:
 
     def __init__(self, env, args, baselines_run=False):
         pygame.init()
-        # pygame.camera.init()
-        # cam = pygame.camera.Camera("/dev/video0",(640,480))
-        # self.cam.start()
 
         self.env = env
         self.human = args.human
@@ -178,8 +175,6 @@ class ML2PythonGUI:
 
                 obs, _, dones, scores = self.env.step(actions)
                 done = dones
-                # self.env.env_method("render")
-                # self.env.render()
                 self.timer.tick()
 
     def run_model(self, policy):
@@ -260,33 +255,4 @@ class ML2PythonGUI:
                     pygame.draw.rect(self.screen, color, rect)
                 else:
                     pygame.draw.rect(self.screen, color, rect)
-        
-
-
-
-
-
-    # def render_cell(self, x, y):
-    #     cell_coords = pygame.Rect(
-    #         x * self.cell_size,
-    #         y * self.cell_size,
-    #         self.cell_size,
-    #         self.cell_size,
-    #     )
-    #     if self.field[x, y] == Cell.EMPTY:
-    #         pygame.draw.rect(self.screen, Color.BACKGROUND, cell_coords)
-    #     else:
-    #         color = Color.CELL[self.field[x, y]]
-    #         pygame.draw.rect(self.screen, color, cell_coords, 1)
-
-    #         internal_padding = self.cell_size // 6 * 2
-    #         internal_square_coords = cell_coords.inflate((-internal_padding, -internal_padding))
-    #         pygame.draw.rect(self.screen, color, internal_square_coords)
-
-    # def rendercell(self):
-    #     """ Draw the entire game frame. """
-    #     for x in range(self.sizex):
-    #         for y in range(self.sizey):
-    #             self.render_cell(x, y)
-
 

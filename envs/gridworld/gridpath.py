@@ -97,18 +97,12 @@ class GridPath(GridWorld):
 		self.n_agents=n_agents
 		self.dist_penalty = dist_penalty 
 
-		# self.__setpath()
-		# self.__setDestination()
-		# self.__setStartingPosition()
-
 		self.init_agent_pos= {}
 		self.viewer = None
 
 		self.observation_space = MultiAgentObservationSpace([spaces.Box(low=0,high=6,shape=(4, self.size, self.size)) for _ in range(self.n_agents)])
 	
 		self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-
-		# self.render()
 
 	def render(self):
 		for i in self.grid:
@@ -208,10 +202,6 @@ class GridPath(GridWorld):
 		rewards += self.penalty
 		infos={}
 
-		# if 1 not in self.grid:
-		# 	dones= [True for a in range(self.n_agents)]
-
-
 		return self.observation(), rewards, self.dones, infos
 
 
@@ -226,7 +216,6 @@ class GridPath(GridWorld):
 					self.penalty[agent] +=Rewards.CONFLICTPENALTY
 					self.agentList[agent].makeMove(prevx,prevy)
 					nextloc[agent] = (prevx, prevy)
-				# print(nextloc)
 			return True
 		
 		return False 
@@ -242,8 +231,6 @@ class GridPath(GridWorld):
 				movedict[v] = [i]
 			else:
 				movedict[v].append(i)
-
-		# print(movedict)
 		
 		return [ (i,v) for i, v in movedict.items() if len(v) > 1] 
 
@@ -282,7 +269,6 @@ class GridPath(GridWorld):
 
 
 	def __draw_base_img(self):
-		# print(self.init_agent_pos)
 		self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
 		for row in range(self._grid_shape[0]):
 			for col in range(self._grid_shape[1]):

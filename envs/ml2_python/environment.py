@@ -166,7 +166,7 @@ class ML2Python(gym.Env):
             rewards[idx] += Reward.LOSE
             self.dones[idx] = True
 
-            # If collided with another player
+            # When colliding with another player
             if len(conflict) > 1:
                 idx = conflict[1]
                 if idx != conflict[0]:
@@ -180,14 +180,6 @@ class ML2Python(gym.Env):
                     else:
                         rewards[idx] += Reward.KILL
                         self.epinfos['kills'][idx] += 1
-        
-        # rewards[0] += 1 / self.distance(headpos, fruit) 
-
-        # Check if done and calculate scores
-        # if self.num_players > 1 and np.sum(~self.dones) == 1:
-        #     idx = list(self.dones).index(False)
-        #     self.dones[idx] = True
-        #     rewards[idx] += Reward.WIN
 
         self.epinfos['scores'] += rewards
         done = False
@@ -271,7 +263,7 @@ class ML2Python(gym.Env):
                 state[idx][2] = self.get_vision(idx, fruit)
                 state[idx][3] = self.get_vision(idx, wall) 
 
-                # Wall not included in body 
+                # When Wall not included in body 
                 # state[idx][0] = self.get_vision(idx, body[idx])
                 # state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])
                 # state[idx][2] = self.get_vision(idx, fruit)
@@ -281,7 +273,6 @@ class ML2Python(gym.Env):
     
     def get_vision(self, idx, arr):
         head = np.where(np.isin(self.field._cells, Cell.HEAD[idx]))
-        # print(self.observation_space.shape)
         h, w = self.observation_space.shape[2:]
         x1 = int(head[1] - w//2)
         x2 = int(head[1] + w//2)
@@ -302,9 +293,6 @@ class ML2Python(gym.Env):
         return arr
  
     def render(self, mode='rgb_array'):
-        # field = str(self.field)
-        # print(np.uint8(self.field._cells * 255))
-
         img = np.uint8(self.field._cells * 255)
         stacked_img = np.stack((img,)*3, axis=-1)
         image = Image.fromarray(stacked_img)

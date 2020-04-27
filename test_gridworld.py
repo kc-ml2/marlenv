@@ -18,7 +18,7 @@ def test_gridPath():
 		obs, r, done, info = env.step([ env.action_space[i].sample() for i in range(env.n_agents)])
 
 		env.render_graphic()
-		# time.sleep(0.01)
+
 	env.render_graphic()
 
 	env.close()
@@ -33,7 +33,6 @@ def test_gridExplore():
 		obs, r, done, info = env.step([ env.action_space[i].sample() for i in range(env.n_agents)])
 
 		env.render_graphic()
-		# time.sleep(0.01)
 
 	env.render_graphic()
 
@@ -64,7 +63,6 @@ def test_python_4p():
 
 		obs, r, done, info = env.step([env.action_space[i].sample() for i in range(env.num_players)])
 		env.render()
-		# time.sleep(0.01)
 
 	env.render()
 

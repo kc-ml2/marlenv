@@ -79,9 +79,6 @@ class Agent:
 			grid[org_y][org_x] = 1
 			return new_x, new_y
 		else:
-			# print(self.idx, end=": 	")
-			# print(grid[new_y][new_x], " ", grid[org_y][org_x], " ", org_x, org_y)
-			# print(grid)
 			return self.position[0], self.position[1]
 
 	def makeMove(self, new_x, new_y):
@@ -111,8 +108,6 @@ class GridExplore(GridWorld):
 		self.observation_space = MultiAgentObservationSpace([spaces.Box(low=0,high=6,shape=(4, self.size, self.size)) for _ in range(self.n_agents)])
 	
 		self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
-
-		# self.render()
 
 	def reset(self):
 
@@ -146,7 +141,6 @@ class GridExplore(GridWorld):
 		nextPosSet=set()
 
 		for i, v in actiondict.items():
-			# self.agent_prev_pos[i] = self.agentList[i].position
 			new_x, new_y = self.agentList[i].move(v, self.grid)
 
 			pos = (new_x,new_y)
@@ -180,14 +174,10 @@ class GridExplore(GridWorld):
 			rewards[i] += (self.searchArea(self.agentList[i]) + Rewards.TIMEPENALTY)
 
 		rewards = rewards + self.distancePenalty(self.agentList)
-		# print(rewards)
+
 		if not any(0  in i for i in self.grid):
 			dones = [True,True,True,True]
 			rewards = rewards + Rewards.WIN
-
-		# print(self.time)
-		# if self.time == 1:
-		# 	dones = [True,True,True,True]
 
 		return self.observation(), rewards, dones, self.grid 
 
@@ -245,7 +235,6 @@ class GridExplore(GridWorld):
 		    arr = np.pad(arr, ((0, 0), (0,x2 - self.size)),mode="constant")
 
 		return arr
-			
 
 	def searchArea(self, agent):
 		reward =0
@@ -259,13 +248,9 @@ class GridExplore(GridWorld):
 		#Give bonus points for exploration
 		for i in range(y, y+2*sight+1):
 			for j in range(x, x+2*sight+1):
-				# print(self.grid[i][j], end="")
 				if self.grid[i][j] == 0:
 					self.grid[i][j] = 1 
-					# print(i,j, end=" ")
 					reward += Rewards.EXPLORATION_BONUS
-			# print("")
-
 
 		return float(reward) 
 
@@ -299,10 +284,8 @@ class GridExplore(GridWorld):
 	def observation(self):
 
 		statearray= []
-		# print(self.observation_space) 
 		for i in self.agentList:
 			
-
 			state = np.zeros(self.observation_space[0].shape)
 
 			agents = np.isin(self.grid, Cell.AGENTS ).astype(np.float32)	
@@ -329,7 +312,6 @@ class GridExplore(GridWorld):
 
 	def __init_full_obs(self):
 	    self.agent_pos = copy.copy(self.init_agent_pos)
-	    # self.agent_prev_pos = copy.copy(self.init_agent_pos)
 	    self._full_obs = self.grid
 	    self.__draw_base_img()
 
