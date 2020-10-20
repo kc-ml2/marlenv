@@ -1,6 +1,7 @@
 """modified from YuriyGuts/snake-ai-reinforcement"""
 from collections import namedtuple
 
+
 class Point(namedtuple('PointTuple', ['x', 'y'])):
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)
@@ -10,6 +11,7 @@ class Point(namedtuple('PointTuple', ['x', 'y'])):
 
     def position(self):
         return (self.y, self.x)
+
 
 class Cell:
     EMPTY = 0
@@ -34,9 +36,8 @@ class Direction:
     SOUTH = Point(0, 1)
     WEST = Point(-1, 0)
 
+    DIRECTIONLIST = [None] * 4
 
-    DIRECTIONLIST= [None] * 4 
-    
     DIRECTIONLIST[0] = Point(0, -1)
     DIRECTIONLIST[1] = Point(1, 0)
     DIRECTIONLIST[2] = Point(0, 1)

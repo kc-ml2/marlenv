@@ -109,3 +109,4 @@ data/
 logs/
 saved_models
 .DS_Store
+result.gif
