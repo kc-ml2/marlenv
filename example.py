@@ -48,9 +48,14 @@ def traindqn(args):
         env = gym.make('python_1p-v0')
         env = DummyVecEnv([lambda: env])
 
-        model = DQN(DqnCnnPolicy, env, verbose=1, learning_rate=0.0001,
-                    exploration_fraction=0.4, train_freq=10)
-        model.learn(5000000)
+        model = DQN(DqnCnnPolicy, env, verbose=1, learning_rate=5e-4,
+                    exploration_fraction=0.1,
+                    exploration_final_eps=0.01,
+                    buffer_size=50000,
+                    train_freq=1,
+                    prioritized_replay=True,
+                    target_network_update_freq=1000)
+        model.learn(int(1e6))
         model.save("dqnwithcnn.pth")
 
 
