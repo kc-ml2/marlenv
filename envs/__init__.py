@@ -1,7 +1,7 @@
 from gym.envs.registration import registry, register, make, spec
 import gym
 import numpy as np
-import random 
+import random
 import sys
 import os
 from settings import PROJECT_ROOT, INF

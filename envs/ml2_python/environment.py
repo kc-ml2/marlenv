@@ -1,6 +1,6 @@
 import numpy as np
 import gym
-from gym.spaces import Discrete, Box
+from gym.spaces import Discrete, Box, MultiDiscrete
 from ml2_python.common import Point, Cell, Direction
 from ml2_python.field import Field
 from ml2_python.python import Python
@@ -10,6 +10,9 @@ from envs.utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 import random
 import math
 from PIL import Image
+
+import collections.abc as cabc
+
 
 class Action:
     IDLE = 0
@@ -31,6 +34,7 @@ class Reward:
     beta = 0
     NEAR = 0.2
 
+
 class ML2Python(gym.Env):
     # metadata = {'render.modes': ['rgb_array']}
     def __init__(self, init_map, players=None, full_observation=False, vision_range=20, num_fruits=4):
@@ -50,28 +54,33 @@ class ML2Python(gym.Env):
             self.observation_space = Box(
             low=0,
             high=255,
-            shape=(self.num_players, 4, self.field.size[0], self.field.size[1]),
+            shape=(4, self.field.size[0], self.field.size[1]),
             dtype=np.uint8
         )
+            # shape=(self.num_players, 4, self.field.size[0], self.field.size[1]),
         else:
             # Set vision range to vision_range(nxn)
             self.observation_space = Box(
                 low=0,
                 high=255,
-                shape=(self.num_players, 4, vision_range, vision_range),
+                shape=(4, vision_range, vision_range),
                 dtype=np.uint8
             )
-        
-        self.action_space = MultiAgentActionSpace([Discrete(5) for _ in range(self.num_players)])
+                # shape=(self.num_players, 4, vision_range, vision_range),
+
+        # self.action_space = MultiAgentActionSpace([Discrete(5) for _ in range(self.num_players)])
+        self.action_space = Discrete(5)
 
         self.reset()
 
     def reset(self):
-        
+
         if len(self.players)==1:
-            #randomize snake's initial position 
+            #randomize snake's initial position
             players = [
-                Python(Point(np.random.randint(3, 4, 1)[0],np.random.randint(3, 4, 1)[0]), random.choice(Direction.DIRECTIONLIST), 3)
+                Python(Point(np.random.randint(3, 4, 1)[0],
+                             np.random.randint(3, 4, 1)[0]),
+                       random.choice(Direction.DIRECTIONLIST), 3)
             ]
         else:
             players = self.playerpos
@@ -79,7 +88,7 @@ class ML2Python(gym.Env):
 
         self.field = Field(self.init_map, players)
 
-        #initialize dones and infos 
+        #initialize dones and infos
         self.dones = np.zeros(self.num_players, dtype=bool)
         self.epinfos = {
             'step': 0,
@@ -89,22 +98,24 @@ class ML2Python(gym.Env):
             'terminal_observation' : 0
         }
 
-        for i in range(self.num_fruits):   
+        for i in range(self.num_fruits):
             self.fruit = self.field.get_empty_cell()
             self.field[self.fruit] = Cell.FRUIT
             self.fruits.append(self.fruit)
-        
+
         if self.observability:
             return self.full_observation()
 
         return self.encode()
 
     def step(self, actions):
+        if not isinstance(actions, cabc.Iterable):
+            actions = [actions]
         assert len(actions) == self.num_players
         # actions = [actions]
         self.epinfos['step'] += 1
         rewards = np.zeros(self.num_players, dtype=float)
-        
+
         for idx, action in enumerate(actions):
             python = self.field.players[idx]
             if not python.alive:
@@ -185,7 +196,7 @@ class ML2Python(gym.Env):
         done = False
         if self.dones[0] == True:
             done =True
-        
+
         if self.observability:
             return self.full_observation(), rewards[0], self.dones[0], self.epinfos
 
@@ -222,7 +233,7 @@ class ML2Python(gym.Env):
         fruit = fruit * 3
         wall = wall * 2
 
-        state = np.zeros(self.observation_space.shape)
+        state = np.zeros((self.num_players, *self.observation_space.shape))
 
         for idx in range(self.num_players):
             if self.field.players[idx].alive:
@@ -254,31 +265,33 @@ class ML2Python(gym.Env):
         fruit = fruit * 3
         wall = wall * 2
 
-        state = np.zeros(self.observation_space.shape)
+        state = np.zeros((self.num_players, *self.observation_space.shape))
 
         for idx in range(self.num_players):
             if self.field.players[idx].alive:
-                state[idx][0] = self.get_vision(idx, body[idx]) 
+                state[idx][0] = self.get_vision(idx, body[idx])
                 state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])*2 + self.get_vision(idx, wall)
                 state[idx][2] = self.get_vision(idx, fruit)
-                state[idx][3] = self.get_vision(idx, wall) 
+                state[idx][3] = self.get_vision(idx, wall)
 
-                # When Wall not included in body 
+                # When Wall not included in body
                 # state[idx][0] = self.get_vision(idx, body[idx])
                 # state[idx][1] = self.get_vision(idx, np.sum(body, axis=0) - body[idx])
                 # state[idx][2] = self.get_vision(idx, fruit)
-                # state[idx][3] = self.get_vision(idx, wall) 
+                # state[idx][3] = self.get_vision(idx, wall)
 
+        if self.num_players == 1:
+            state = state[0]
         return state
-    
+
     def get_vision(self, idx, arr):
         head = np.where(np.isin(self.field._cells, Cell.HEAD[idx]))
-        h, w = self.observation_space.shape[2:]
+        h, w = self.observation_space.shape[1:]
         x1 = int(head[1] - w//2)
         x2 = int(head[1] + w//2)
         y1 = int(head[0] - h//2)
         y2 = int(head[0] + h//2)
-        
+
         arr = arr[max(y1,0):y2, max(0, x1):x2]
 
         if y1 < 0:
@@ -291,16 +304,16 @@ class ML2Python(gym.Env):
             arr = np.pad(arr, ((0, 0), (0,x2 - self.field.size[1])),mode="constant")
 
         return arr
- 
+
     def render(self, mode='rgb_array'):
         img = np.uint8(self.field._cells * 255)
         stacked_img = np.stack((img,)*3, axis=-1)
         image = Image.fromarray(stacked_img)
 
-        image = image.resize((400, 400))  
+        image = image.resize((400, 400))
         image = np.asarray(image, dtype="uint8")
         print(self.field)
         return image
 
-    def distance(self, pos1, pos2): 
-        return math.sqrt( (pos2[1] - pos1[1])**2 + (pos2[0]-pos1[0])**2 ) 
+    def distance(self, pos1, pos2):
+        return math.sqrt( (pos2[1] - pos1[1])**2 + (pos2[0]-pos1[0])**2 )

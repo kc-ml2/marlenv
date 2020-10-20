@@ -8,14 +8,13 @@ from ..utils.observation_space import MultiAgentObservationSpace
 
 
 class MultiAgentEnv(gym.Env):
-
     def __init__(self, n_agents, full_observable):
 
         self.n_agents = n_agents
         self.full_observable = full_observable
 
         self._colaboration_reward = None
-        self._step_count = 0 
+        self._step_count = 0
 
 
     def reset(self):
@@ -26,4 +25,3 @@ class MultiAgentEnv(gym.Env):
 
     def render(self):
         raise NotImplementedError
-        
