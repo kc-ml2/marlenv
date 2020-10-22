@@ -17,7 +17,9 @@ from envs.ml2_python.graphics import ML2PythonGUI
 init_length = 3
 init_map = os.path.join(PROJECT_ROOT, 'assets', '10x10.txt')
 players = [
-    Python(Point(np.random.randint(2, 4, 1)[0],np.random.randint(2, 4, 1)[0]), Direction.EAST, 3)
+    Python(Point(np.random.randint(2, 4, 1)[0],
+                 np.random.randint(2, 4, 1)[0]),
+           Direction.EAST, 3)
 ]
 
 register(
@@ -35,7 +37,9 @@ register(
 init_length = 3
 init_map = os.path.join(PROJECT_ROOT, 'assets', '20x20.txt')
 players = [
-    Python(Point(np.random.randint(2, 4, 1)[0],np.random.randint(2, 4, 1)[0]), Direction.EAST, 3)
+    Python(Point(np.random.randint(2, 4, 1)[0],
+                 np.random.randint(2, 4, 1)[0]),
+           Direction.EAST, 3)
 ]
 
 register(
@@ -75,6 +79,7 @@ players = [
     Python(Point(36, 36), Direction.WEST, init_length),
     Python(Point(3, 36), Direction.NORTH, init_length)
 ]
+
 register(
     id='python_ml2-v0',
     entry_point='ml2_python:ML2Python',
@@ -85,8 +90,6 @@ register(
 
     }
 )
-
-
 
 register(
 	id='GridExplore-v0',

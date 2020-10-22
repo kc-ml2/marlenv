@@ -1,5 +1,6 @@
 import os
 import torch
+from stable_baselines.common.vec_env import DummyVecEnv
 
 
 class ArgumentParser(dict):
@@ -18,7 +19,7 @@ def to_onehot(tensor, size):
 
 def to_idx(onehot):
     assert len(onehot.shape) == 2
-    idx = onehot.nonzero()[:,1]
+    idx = onehot.nonzero()[:, 1]
     return idx
 
 
@@ -37,3 +38,13 @@ def load_model(path):
     model = pth['model']
     model.load_state_dict(pth['checkpoint'])
     return model
+
+
+class FalseVecEnv(DummyVecEnv):
+    def step_wait(self):
+        obs, rews, dones, infos = self.envs[0].step(self.actions)
+        infos = [infos]
+        return obs, rews, dones, infos
+
+    def reset(self):
+        return self.envs[0].reset()

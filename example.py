@@ -6,10 +6,14 @@ import time
 import tensorflow as tf
 import numpy as np
 from stable_baselines import DQN, PPO2
-from stable_baselines.common.vec_env import DummyVecEnv
+# from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines.common.vec_env import SubprocVecEnv
 from stable_baselines.common.policies import FeedForwardPolicy, register_policy
 from stable_baselines.deepq.policies import FeedForwardPolicy as DqnFFPolicy
 from stable_baselines.a2c.utils import conv, linear, conv_to_fc
+
+# from utils.common import FalseVecEnv
+from utils.wrappers import SAhandler
 
 
 def custom_cnn(scaled_images, **kwargs):
@@ -46,7 +50,8 @@ register_policy('DqnCnnPolicy', DqnCnnPolicy)
 def traindqn(args):
     with tf.device('/gpu:0'):
         env = gym.make('python_1p-v0')
-        env = DummyVecEnv([lambda: env])
+        # env = DummyVecEnv([lambda: env])
+        env = SAhandler(env)
 
         model = DQN(DqnCnnPolicy, env, verbose=1, learning_rate=5e-4,
                     exploration_fraction=0.1,
@@ -56,7 +61,46 @@ def traindqn(args):
                     prioritized_replay=True,
                     target_network_update_freq=1000)
         model.learn(int(1e6))
-        model.save("dqnwithcnn.pth")
+        model.save("dqnwithcnn", cloudpickle=True)
+
+
+def trainppo(args):
+    with tf.device('/gpu:0'):
+        env = gym.make('python_1p-v0')
+        env = SAhandler(env)
+        env = make_vec_env(env, 10)
+
+        model = PPO2(CustomPolicy, env, noptepochs=10, nminibatches=8)
+        model.learn(int(1e7))
+        model.save("ppo_4p", cloudpickle=True)
+
+
+def make_env(env_id, mpi_rank=0, subrank=0, seed=0, initializer=None, npcs=[]):
+    if initializer is not None:
+        initializer(mpi_rank=mpi_rank, subrank=subrank)
+    env = gym.make(env_id)
+    env = SAhandler(env)
+    env.seed(seed + mpi_rank)
+    env.set_npcs([npc for npc in npcs])
+    return env
+
+
+def make_vec_env(env, num_env):
+    def make_thunk(rank):
+        return lambda: env
+    return SubprocVecEnv([make_thunk(i) for i in range(num_env)])
+
+
+def trainmulti(args):
+    with tf.device('/gpu:0'):
+        env = gym.make('python_4p-v1', full_observation=False, vision_range=10)
+        env = SAhandler(env)
+        env.set_npcs(["ppo_4p.pth" for _ in range(3)])
+        env = make_vec_env(env, 10)
+
+        model = PPO2(CustomPolicy, env, noptepochs=10, nminibatches=8)
+        model.learn(int(1e7))
+        model.save("ppo_4p", cloudpickle=True)
 
 
 def runGUI(args):
@@ -97,7 +141,7 @@ def saveImage(args):
 
     env = gym.make('python_4p-v1', full_observation=False, vision_range=10)
     net = PPO2.load("4p_compete.pth", policy=CustomPolicy)
-    # net = PPO2.load("4p_map_32b_2kstep.pth")
+    # net = PPO2.load("ppo_4p.pth", policy=CustomPolicy)
 
     obs = env.reset()
 

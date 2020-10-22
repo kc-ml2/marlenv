@@ -189,8 +189,8 @@ class ML2Python(gym.Env):
         self.epinfos['scores'] += rewards
 
         if self.observability:
-            return (self.full_observation(), rewards[0],
-                    self.dones[0], self.epinfos)
+            return (self.full_observation(), rewards,
+                    self.dones, self.epinfos)
         return self.encode(), rewards, self.dones, self.epinfos
 
     def get_custom_state(self):
