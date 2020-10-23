@@ -1,7 +1,9 @@
 import random
+import numpy as np
 import gym
 
 from stable_baselines import PPO2
+from stable_baselines.common.vec_env import DummyVecEnv
 
 
 class SAhandler(gym.Wrapper):
@@ -52,3 +54,37 @@ class SAhandler(gym.Wrapper):
         self.obs, rews, dones, infos = self.env.step(actions)
         curr_idx = self.player_idx[-1]
         return self.obs[curr_idx], rews[curr_idx], dones[curr_idx], infos
+
+
+class Vechandler(gym.Wrapper):
+    def __init__(self, env):
+        env.reward_range = env.get_attr('reward_range')[0]
+        super().__init__(env)
+        self.env = env
+
+    def reset(self, **kwargs):
+        obs = self.env.reset(**kwargs)
+        obs = obs.reshape((-1, *obs.shape[2:]))
+        return obs
+
+    def step(self, actions):
+        actions = np.asarray(actions).reshape(
+            (self.env.num_envs, self.env.get_attr('num_players')[0])
+        )
+        obs, rews, dones, infos = self.env.step(actions)
+        obs = obs.reshape(-1, *obs.shape[2:])
+        rews = rews.flatten()
+        dones = dones.flatten()
+        infos = {i: info for i, info in enumerate(infos)}
+        # import pdb; pdb.set_trace()
+        return obs, rews, dones, infos
+
+
+class FalseVecEnv(DummyVecEnv):
+    def step_wait(self):
+        obs, rews, dones, infos = self.envs[0].step(self.actions)
+        infos = [infos]
+        return obs, rews, dones, infos
+
+    def reset(self):
+        return self.envs[0].reset()
