@@ -20,6 +20,9 @@ class Action:
 
 
 class Reward:
+    '''
+    Default reward class
+    '''
     FRUIT = 1.0
     KILL = 0
     LOSE = -1.0
@@ -35,10 +38,18 @@ class Reward:
 class ML2Python(gym.Env):
     # metadata = {'render.modes': ['rgb_array']}
     def __init__(self, init_map, players=None, full_observation=False,
-                 vision_range=20, num_fruits=4):
+                 vision_range=20, num_fruits=4, rewards={}):
         self.init_map = init_map
         self.players = players
         self.observability = full_observation
+
+        # Set the global reward function of agents
+        self.reward_keys = ['FRUIT', 'KILL', 'LOSE', 'WIN', 'TIME']
+        self.reward_func = {}
+        for rk in self.reward_keys:
+            self.reward_func[rk] = getattr(Reward, rk)
+        for rk, kv in rewards:
+            self.reward_func[rk] = kv
 
         self.field = Field(init_map, players)
         self.num_players = len(self.field.players)
@@ -138,7 +149,7 @@ class ML2Python(gym.Env):
             # Eat fruit
             if self.field[python.next] == Cell.FRUIT:
                 python.grow()
-                rewards[idx] += Reward.FRUIT
+                rewards[idx] += self.reward_func['FRUIT']
                 self.epinfos['fruits'][idx] += 1
                 if python.head in self.fruits:
                     self.fruits.remove(python.head)
@@ -150,7 +161,7 @@ class ML2Python(gym.Env):
             else:
                 self.field[python.tail] = Cell.EMPTY
                 python.move()
-                rewards[idx] += Reward.TIME
+                rewards[idx] += self.reward_func['TIME']
 
             self.field.players[idx] = python
 
@@ -168,7 +179,7 @@ class ML2Python(gym.Env):
             idx = conflict[0]
             python = self.field.players[idx]
             python.alive = False
-            rewards[idx] += Reward.LOSE
+            rewards[idx] += self.reward_func['LOSE']
             self.dones[idx] = True
 
             # When colliding with another player
@@ -179,11 +190,11 @@ class ML2Python(gym.Env):
                     # Head to head
                     if self.field[python.head] in Cell.HEAD:
                         other.alive = False
-                        rewards[idx] += Reward.LOSE
+                        rewards[idx] += self.reward_func['LOSE']
                         self.dones[idx] = True
                     # Head to body
                     else:
-                        rewards[idx] += Reward.KILL
+                        rewards[idx] += self.reward_func['KILL']
                         self.epinfos['kills'][idx] += 1
 
         self.epinfos['scores'] += rewards
