@@ -1,12 +1,13 @@
-from envs import *
-from utils import *
-
-from gym.envs.registration import registry, register, make, spec
-import gym
-import numpy as np
-import random
 import sys
 import os
+import numpy as np
+import random
+
+import gym
+from gym.envs.registration import registry, register, make, spec
+
+from .envs import *
+from .utils import *
 from .settings import PROJECT_ROOT, INF
 
 # ML2 Python environments
