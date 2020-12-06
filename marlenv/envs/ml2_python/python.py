@@ -1,6 +1,7 @@
 """modified from YuriyGuts/snake-ai-reinforcement"""
 from collections import deque
 
+
 from .common import Direction
 
 

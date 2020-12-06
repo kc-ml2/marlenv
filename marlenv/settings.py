@@ -2,6 +2,7 @@ from pathlib import Path
 
 # IO directories
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.as_posix()
+
 DATA_DIR = 'data'
 LOG_DIR = 'logs'
 

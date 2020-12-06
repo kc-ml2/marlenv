@@ -11,5 +11,6 @@ setup(name='marlenv',
       # license=open(path.join(path.abspath(path.dirname(__file__)), 'LICENSE')).read(),
       install_requires=[x.strip() for x in
                         open(path.join(path.abspath(path.dirname(__file__)), 'requirements.txt')).readlines()],
+
       python_requires='>=3.6',
       )

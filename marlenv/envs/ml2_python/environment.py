@@ -8,6 +8,7 @@ from .common import Point, Cell, Direction
 from .field import Field
 from .python import Python
 
+
 import collections.abc as cabc
 
 
