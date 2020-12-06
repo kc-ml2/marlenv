@@ -1,17 +1,17 @@
+from envs import *
+from utils import *
+
 from gym.envs.registration import registry, register, make, spec
 import gym
 import numpy as np
 import random
 import sys
 import os
-from settings import PROJECT_ROOT, INF
-sys.path.append("../")
-sys.path.append(os.path.join(PROJECT_ROOT, 'envs'))
+from .settings import PROJECT_ROOT, INF
 
 # ML2 Python environments
-from envs.ml2_python.common import Point, Direction
-from envs.ml2_python.python import Python
-from envs.ml2_python.graphics import ML2PythonGUI
+from .envs.ml2_python.common import Point, Direction
+from .envs.ml2_python.python import Python
 
 
 init_length = 3
@@ -24,7 +24,7 @@ players = [
 
 register(
     id='python_1p-v0',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -44,7 +44,7 @@ players = [
 
 register(
     id='python_1p-v1',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -64,7 +64,7 @@ players = [
 
 register(
     id='python_4p-v1',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -82,7 +82,7 @@ players = [
 
 register(
     id='python_ml2-v0',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -93,7 +93,7 @@ register(
 
 register(
 	id='GridExplore-v0',
-	entry_point='envs.gridworld:GridExplore',
+	entry_point='marlenv.envs.gridworld:GridExplore',
 	kwargs={
 		'full_observable' : False,
 		'size' : 10
@@ -102,7 +102,7 @@ register(
 
 register(
 	id='GridExplore-v1',
-	entry_point='envs.gridworld:GridExplore',
+	entry_point='marlenv.envs.gridworld:GridExplore',
 	kwargs={
 		'full_observable' : False,
 		'size' : 15,
@@ -112,7 +112,7 @@ register(
 
 register(
 	id='GridPath-v0',
-	entry_point='envs.gridworld:GridPath',
+	entry_point='marlenv.envs.gridworld:GridPath',
 	kwargs={
 		'full_observable' : False,
 		'size' : 11

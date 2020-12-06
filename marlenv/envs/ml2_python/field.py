@@ -3,8 +3,8 @@ import random
 import itertools
 import numpy as np
 
-from ml2_python.common import Point, Cell, Direction
-from ml2_python.python import Python
+from .common import Point, Cell, Direction
+from .python import Python
 
 
 class Field:
