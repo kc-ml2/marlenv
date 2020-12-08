@@ -1,7 +1,8 @@
 """modified from YuriyGuts/snake-ai-reinforcement"""
 from collections import deque
 
-from ml2_python.common import Direction
+
+from .common import Direction
 
 
 class Python:

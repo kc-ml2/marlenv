@@ -4,9 +4,10 @@ import random
 import math
 from PIL import Image
 from gym.spaces import Discrete, Box
-from ml2_python.common import Point, Cell, Direction
-from ml2_python.field import Field
-from ml2_python.python import Python
+from .common import Point, Cell, Direction
+from .field import Field
+from .python import Python
+
 
 import collections.abc as cabc
 

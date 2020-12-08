@@ -1,4 +1,4 @@
-from envs.gridworld.gridworld import GridWorld 
+from envs.gridworld import GridWorld
 from ..utils.action_space import MultiAgentActionSpace
 from ..utils.observation_space import MultiAgentObservationSpace
 from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
