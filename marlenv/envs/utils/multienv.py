@@ -3,8 +3,8 @@ from gym import spaces
 from gym.envs.registration import EnvSpec
 import numpy as np
 
-from ..utils.action_space import MultiAgentActionSpace
-from ..utils.observation_space import MultiAgentObservationSpace
+from marlenv.envs.utils.action_space import MultiAgentActionSpace
+from marlenv.envs.utils.observation_space import MultiAgentObservationSpace
 
 
 class MultiAgentEnv(gym.Env):

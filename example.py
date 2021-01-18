@@ -1,17 +1,17 @@
 import random
-import envs
 import gym
 import argparse
 import time
 import tensorflow as tf
 import numpy as np
 from stable_baselines import DQN, PPO2
-from utils.subproc_vec_env import SubprocVecEnv
 from stable_baselines.common.policies import FeedForwardPolicy, register_policy
 from stable_baselines.deepq.policies import FeedForwardPolicy as DqnFFPolicy
 from stable_baselines.a2c.utils import conv, linear, conv_to_fc
 
-from utils.wrappers import SAhandler, Vechandler, FalseVecEnv
+import marlenv.envs
+from marlenv.utils.subproc_vec_env import SubprocVecEnv
+from marlenv.utils.wrappers import SAhandler, Vechandler, FalseVecEnv
 
 
 def custom_cnn(scaled_images, **kwargs):

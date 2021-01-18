@@ -3,8 +3,8 @@ import random
 import itertools
 import numpy as np
 
-from .common import Point, Cell, Direction
-from .python import Python
+from marlenv.envs.ml2_python.common import Point, Cell, Direction
+from marlenv.envs.ml2_python.python import Python
 
 
 class Field:

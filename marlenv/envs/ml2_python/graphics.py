@@ -3,10 +3,8 @@ import numpy as np
 import torch
 import pygame
 
-
-from .common import Cell, Direction
-from .environment import Action
-
+from marlenv.envs.ml2_python.common import Cell, Direction
+from marlenv.envs.ml2_python.environment import Action
 
 
 class Color:

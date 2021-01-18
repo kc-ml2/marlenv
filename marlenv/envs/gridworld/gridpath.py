@@ -1,7 +1,7 @@
-from envs.gridworld.gridworld import GridWorld 
-from ..utils.action_space import MultiAgentActionSpace
-from ..utils.observation_space import MultiAgentObservationSpace
-from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
+from marlenv.envs.gridworld.gridworld import GridWorld
+from marlenv.envs.utils.action_space import MultiAgentActionSpace
+from marlenv.envs.utils.observation_space import MultiAgentObservationSpace
+from marlenv.envs.utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 
 import random
 import numpy as np
@@ -33,40 +33,40 @@ class Move:
 	RIGHT = 1
 	DOWN = 2
 	LEFT = 3
-	STAY = 4 
+	STAY = 4
 
 class Rewards:
 	TIMEPENALTY = -0.1
-	WIN = 10 
+	WIN = 10
 	CONFLICTPENALTY = -0.5
 
 class Agent:
 
 	def __init__(self, posx, posy, idx, sight=2):
-		
+
 		self.idx = int(idx)
 		self.x = posx
-		self.y = posy 
+		self.y = posy
 		self.position = (self.x, self.y)
-		
+
 		self.sight = sight
 
 	def __str__(self):
 		return "x: " + str(self.x) +  " y: "+ str(self.y)+ " agent idx: " + str(self.idx)
 
-			
+
 	def move(self, MOVE, grid):
 		new_x, new_y = self.position[0], self.position[1]
 		org_x, org_y = self.position[0], self.position[1]
 
 		if MOVE==Move.UP and self.position[1] != 1:
-			new_y -= 1 
+			new_y -= 1
 		elif MOVE == Move.DOWN and self.position[1] != len(grid)-1:
-			new_y += 1 	
+			new_y += 1
 		if MOVE==Move.LEFT and self.position[0] != 1:
-			new_x -= 1 
+			new_x -= 1
 		elif MOVE == Move.RIGHT and self.position[0] != len(grid)-1:
-			new_x += 1 	
+			new_x += 1
 
 		#check if wall exist there
 		if grid[new_y][new_x] != 2 :
@@ -95,20 +95,20 @@ class GridPath(GridWorld):
 		self.agentList=[]
 		self.time= 0
 		self.n_agents=n_agents
-		self.dist_penalty = dist_penalty 
+		self.dist_penalty = dist_penalty
 
 		self.init_agent_pos= {}
 		self.viewer = None
 
 		self.observation_space = MultiAgentObservationSpace([spaces.Box(low=0,high=6,shape=(4, self.size, self.size)) for _ in range(self.n_agents)])
-	
+
 		self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
 
 	def render(self):
 		for i in self.grid:
 			print(i)
 		print("")
-	
+
 	def __setpath(self):
 		for i in range(1, self.size-1):
 			self.grid[self.size-2][i] = 0
@@ -127,7 +127,7 @@ class GridPath(GridWorld):
 	#set starting position for 4 players
 	def __setStartingPosition(self):
 		assert self.n_agents == 4
-		
+
 		self.starting_positions = [(1, self.size-2), (1, self.size-3), (self.size-2, self.size-2), (self.size-2, self.size-3)]
 
 		self.grid[self.size-2][1] = 3
@@ -155,9 +155,9 @@ class GridPath(GridWorld):
 		self.__init_full_obs()
 
 		self.dones = np.zeros(self.n_agents, dtype=bool)
-		
+
 		return self.observation()
-		
+
 	def step(self, actions):
 		assert len(actions) == self.n_agents
 
@@ -181,21 +181,21 @@ class GridPath(GridWorld):
 		conflict = True
 		while conflict:
 			conflict = self.resolveConflict(nextloc, prevloc)
-		
-		# Move agents to their final next locations 
+
+		# Move agents to their final next locations
 		for index, value in enumerate(nextloc):
 			self.grid[value[1]][value[0]]=Cell.AGENTS[index]
 			self.agent_pos[index] = value[1], value[0]
-		
+
 			if (value[1], value[0]) in self.destinations:
-				
+
 				if not self.dones[index]:
 
 					rewards[index]+= Rewards.WIN
 					self.dones[index]= True
 
-				# self.grid[value[1]][value[0]] = 2 
-			
+				# self.grid[value[1]][value[0]] = 2
+
 			elif not self.dones[index] :
 				rewards[index] += Rewards.TIMEPENALTY
 
@@ -206,7 +206,7 @@ class GridPath(GridWorld):
 
 
 	def resolveConflict(self, nextloc, prevloc):
-        
+
 		conflict = self.__checkMove(nextloc)
 
 		if conflict:
@@ -217,11 +217,11 @@ class GridPath(GridWorld):
 					self.agentList[agent].makeMove(prevx,prevy)
 					nextloc[agent] = (prevx, prevy)
 			return True
-		
-		return False 
+
+		return False
 
 	def __checkMove(self, poslist):
-		
+
 		counter = 0
 		movedict = {}
 
@@ -231,8 +231,8 @@ class GridPath(GridWorld):
 				movedict[v] = [i]
 			else:
 				movedict[v].append(i)
-		
-		return [ (i,v) for i, v in movedict.items() if len(v) > 1] 
+
+		return [ (i,v) for i, v in movedict.items() if len(v) > 1]
 
 	def observation(self):
 		statearray=[]
@@ -240,10 +240,10 @@ class GridPath(GridWorld):
 
 			state = np.zeros(self.observation_space[0].shape)
 
-			agents = np.isin(self.grid, Cell.AGENTS ).astype(np.float32)	
-			agenti = np.isin(self.grid, i.idx ).astype(np.float32)			
+			agents = np.isin(self.grid, Cell.AGENTS ).astype(np.float32)
+			agenti = np.isin(self.grid, i.idx ).astype(np.float32)
 
-			destinations = np.isin(self.grid, Cell.DESTINATIONS).astype(np.float32) 
+			destinations = np.isin(self.grid, Cell.DESTINATIONS).astype(np.float32)
 
 			wall = np.isin(self.grid, Cell.WALL).astype(np.float32)
 
@@ -257,7 +257,7 @@ class GridPath(GridWorld):
 				state[3] = wall
 
 			statearray.append(state)
-		
+
 		return statearray
 
 	def __init_full_obs(self):
@@ -283,13 +283,13 @@ class GridPath(GridWorld):
 	def render_graphic(self, mode='human'):
 		img = copy.copy(self._base_img)
 
-		#Draw Agents with Color and number 
+		#Draw Agents with Color and number
 		for agent_i in range(self.n_agents):
 			draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR[agent_i])
 			write_cell_text(img, text=str(agent_i + 3), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
 							fill='white', margin=0.4)
 
-		#Draw explored/visited cells 
+		#Draw explored/visited cells
 		for row in range(self._grid_shape[0]):
 			for col in range(self._grid_shape[1]):
 				if self.grid[col][row] == 1:

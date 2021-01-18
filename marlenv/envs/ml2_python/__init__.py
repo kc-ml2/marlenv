@@ -1,1 +1,1 @@
-from .environment import ML2Python
+from marlenv.envs.ml2_python.environment import ML2Python

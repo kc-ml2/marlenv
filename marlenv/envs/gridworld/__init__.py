@@ -1,3 +1,3 @@
-from .gridexplore import GridExplore
-from .gridpath import GridPath
-from .gridworld import GridWorld
+from marlenv.envs.gridworld.gridexplore import GridExplore
+from marlenv.envs.gridworld.gridpath import GridPath
+from marlenv.envs.gridworld.gridworld import GridWorld

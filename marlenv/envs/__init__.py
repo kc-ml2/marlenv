@@ -4,14 +4,14 @@ import numpy as np
 import random
 import sys
 import os
-from settings import PROJECT_ROOT, INF
-sys.path.append("../")
-sys.path.append(os.path.join(PROJECT_ROOT, 'envs'))
+# sys.path.append("../")
+# sys.path.append(os.path.join(PROJECT_ROOT, 'envs'))
 
 # ML2 Python environments
-from envs.ml2_python.common import Point, Direction
-from envs.ml2_python.python import Python
-from envs.ml2_python.graphics import ML2PythonGUI
+from marlenv.settings import PROJECT_ROOT, INF
+from marlenv.envs.ml2_python.common import Point, Direction
+from marlenv.envs.ml2_python.python import Python
+from marlenv.envs.ml2_python.graphics import ML2PythonGUI
 
 
 init_length = 3
@@ -24,7 +24,7 @@ players = [
 
 register(
     id='python_1p-v0',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -44,7 +44,7 @@ players = [
 
 register(
     id='python_1p-v1',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -64,7 +64,7 @@ players = [
 
 register(
     id='python_4p-v1',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,
@@ -82,7 +82,7 @@ players = [
 
 register(
     id='python_ml2-v0',
-    entry_point='ml2_python:ML2Python',
+    entry_point='marlenv.envs.ml2_python:ML2Python',
     max_episode_steps=INF,
     kwargs={
         'init_map': init_map,

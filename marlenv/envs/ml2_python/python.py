@@ -1,8 +1,7 @@
 """modified from YuriyGuts/snake-ai-reinforcement"""
 from collections import deque
 
-
-from .common import Direction
+from marlenv.envs.ml2_python.common import Direction
 
 
 class Python:

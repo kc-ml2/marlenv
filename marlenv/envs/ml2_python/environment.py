@@ -4,10 +4,10 @@ import random
 import math
 from PIL import Image
 from gym.spaces import Discrete, Box
-from .common import Point, Cell, Direction
-from .field import Field
-from .python import Python
 
+from marlenv.envs.ml2_python.common import Point, Cell, Direction
+from marlenv.envs.ml2_python.field import Field
+from marlenv.envs.ml2_python.python import Python
 
 import collections.abc as cabc
 

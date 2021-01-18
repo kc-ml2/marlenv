@@ -1,7 +1,7 @@
-from envs.gridworld import GridWorld
-from ..utils.action_space import MultiAgentActionSpace
-from ..utils.observation_space import MultiAgentObservationSpace
-from ..utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
+from marlenv.envs.gridworld.gridworld import GridWorld
+from marlenv.envs.utils.action_space import MultiAgentActionSpace
+from marlenv.envs.utils.observation_space import MultiAgentObservationSpace
+from marlenv.envs.utils.draw import draw_grid, fill_cell, draw_circle, write_cell_text
 from gym.envs.classic_control import rendering
 
 import numpy as np
@@ -35,23 +35,23 @@ class Move:
 	RIGHT = 1
 	DOWN = 2
 	LEFT = 3
-	STAY = 3 
-	STAY = 4 
+	STAY = 3
+	STAY = 4
 
 class Rewards:
 	TIMEPENALTY = -1
 	EXPLORATION_BONUS = 2
-	WIN = 50 
+	WIN = 50
 
 class Agent:
 
 	def __init__(self, posx, posy, idx, sight=2):
-		
+
 		self.idx = int(idx)
 		self.x = posx
-		self.y = posy 
+		self.y = posy
 		self.position = (self.x, self.y)
-		
+
 		self.sight = sight
 
 	def __str__(self):
@@ -65,13 +65,13 @@ class Agent:
 		org_x, org_y = self.position[0], self.position[1]
 
 		if MOVE==Move.UP and self.position[1] != 1:
-			new_y -= 1 
+			new_y -= 1
 		elif MOVE == Move.DOWN and self.position[1] != len(grid)-1:
-			new_y += 1 	
+			new_y += 1
 		if MOVE==Move.LEFT and self.position[0] != 1:
-			new_x -= 1 
+			new_x -= 1
 		elif MOVE == Move.RIGHT and self.position[0] != len(grid)-1:
-			new_x += 1 	
+			new_x += 1
 
 		#check if wall exist there
 		if grid[new_y][new_x] != 2 and grid[new_y][new_x] not in Cell.AGENTS:
@@ -98,15 +98,15 @@ class GridExplore(GridWorld):
 		self.agentList=[]
 		self.time= 0
 		self.n_agents=n_agents
-		self.dist_penalty = dist_penalty 
+		self.dist_penalty = dist_penalty
 
 		self.__setwall()
-		
+
 		self.init_agent_pos= {}
 		self.viewer = None
 
 		self.observation_space = MultiAgentObservationSpace([spaces.Box(low=0,high=6,shape=(4, self.size, self.size)) for _ in range(self.n_agents)])
-	
+
 		self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
 
 	def reset(self):
@@ -117,7 +117,7 @@ class GridExplore(GridWorld):
 		self._grid_shape=[self.size,self.size]
 		self.__setwall()
 
-		for i in range(self.n_agents):			
+		for i in range(self.n_agents):
 			x, y = self.__getEmptyCell()
 			self.__putAgent(x,y, Cell.AGENTS[i])
 			self.init_agent_pos[i] = (x, y)
@@ -148,26 +148,26 @@ class GridExplore(GridWorld):
 				if v < 2 :
 					new_x,new_y = self.agentList[i].move(v+2, self.grid)
 					pos = (new_x,new_y)
-				elif v == 2 or v == 3:	
+				elif v == 2 or v == 3:
 					new_x,new_y = self.agentList[i].move(v-2, self.grid)
 					pos = (new_x,new_y)
 				else:
-					print("action 4 is staying therefore there shouldn't be conflicts")	
-			
+					print("action 4 is staying therefore there shouldn't be conflicts")
+
 			self.agent_pos[i] = self.agentList[i].position_yx()
 
 			#insert to nextMoveSet to check conflict
 			nextPosSet.add(pos)
 			nextMoveSet.add((pos, self.agentList[i].idx))
 
-		#New position set 
+		#New position set
 		for pos ,idx in nextMoveSet:
-			self.grid[pos[1]][pos[0]]= idx 
+			self.grid[pos[1]][pos[0]]= idx
 
 		#Initialze reward and done list
 		rewards = np.zeros(self.n_agents)
 		dones = [False,False,False,False]
-		
+
 		#TIME PENALTY + EXPLORATION REWARD
 		for i in range(self.n_agents):
 
@@ -179,7 +179,7 @@ class GridExplore(GridWorld):
 			dones = [True,True,True,True]
 			rewards = rewards + Rewards.WIN
 
-		return self.observation(), rewards, dones, self.grid 
+		return self.observation(), rewards, dones, self.grid
 
 
 	def render(self):
@@ -190,23 +190,23 @@ class GridExplore(GridWorld):
 
 	def __setwall(self):
 		for i in range(self.size):
-			self.grid[0][i] = 2 
-			self.grid[self.size-1][i] = 2 
+			self.grid[0][i] = 2
+			self.grid[self.size-1][i] = 2
 			self.grid[i][0] = 2
 			self.grid[i][self.size-1]= 2
 
 	def __getEmptyCell(self):
-		
+
 		x = random.choice(range(self.size-1))
 		y = random.choice(range(self.size-1))
 
 		if self.grid[y][x] == 0:
-			return x, y 
+			return x, y
 		else:
 			return self.__getEmptyCell()
 
 	def __putAgent(self, x, y, agentnum):
-		assert self.grid[y][x] == 0 
+		assert self.grid[y][x] == 0
 
 		self.grid[y][x] = agentnum
 		self.agentList.append(Agent(x,y,agentnum))
@@ -217,7 +217,7 @@ class GridExplore(GridWorld):
 
 	def getObservation(self, agent, obs_size):
 		(agentx , agenty) = agent.position
-		h , w = obs_size, obs_size 
+		h , w = obs_size, obs_size
 		x1 = int(agentx - w//2 )
 		x2 = int(agentx + w//2 )
 		y1 = int(agenty - h//2 )
@@ -238,24 +238,24 @@ class GridExplore(GridWorld):
 
 	def searchArea(self, agent):
 		reward =0
-		sight = agent.sight 
-		sight = sight // 2 
+		sight = agent.sight
+		sight = sight // 2
 		x,y = agent.position
-		
-		x -= sight  
-		y -= sight 
+
+		x -= sight
+		y -= sight
 
 		#Give bonus points for exploration
 		for i in range(y, y+2*sight+1):
 			for j in range(x, x+2*sight+1):
 				if self.grid[i][j] == 0:
-					self.grid[i][j] = 1 
+					self.grid[i][j] = 1
 					reward += Rewards.EXPLORATION_BONUS
 
-		return float(reward) 
+		return float(reward)
 
 	def distance(self, pos1, pos2):
-		return math.sqrt( (pos2.y - pos1.y)**2 + (pos2.x-pos1.x)**2 ) 
+		return math.sqrt( (pos2.y - pos1.y)**2 + (pos2.x-pos1.x)**2 )
 
 
 	def isNear(self, agent1, agent2, distance):
@@ -276,7 +276,7 @@ class GridExplore(GridWorld):
 
 		return rewards
 
- 
+
 	def howNear(self, agent1, agent2, distance):
 		return self.distance(agent2, agent1)
 
@@ -285,12 +285,12 @@ class GridExplore(GridWorld):
 
 		statearray= []
 		for i in self.agentList:
-			
+
 			state = np.zeros(self.observation_space[0].shape)
 
-			agents = np.isin(self.grid, Cell.AGENTS ).astype(np.float32)	
-			agenti = np.isin(self.grid, i.idx ).astype(np.float32)			
-			visited = np.isin(self.grid, Cell.VISITED).astype(np.float32) 
+			agents = np.isin(self.grid, Cell.AGENTS ).astype(np.float32)
+			agenti = np.isin(self.grid, i.idx ).astype(np.float32)
+			visited = np.isin(self.grid, Cell.VISITED).astype(np.float32)
 
 			#add agent's position as visited
 			visited = visited + agents
@@ -308,7 +308,7 @@ class GridExplore(GridWorld):
 			statearray.append(state)
 
 		return statearray
-    
+
 
 	def __init_full_obs(self):
 	    self.agent_pos = copy.copy(self.init_agent_pos)
@@ -332,13 +332,13 @@ class GridExplore(GridWorld):
 	def render_graphic(self, mode='human'):
 		img = copy.copy(self._base_img)
 
-		#Draw Agents with Color and number 
+		#Draw Agents with Color and number
 		for agent_i in range(self.n_agents):
 			draw_circle(img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLOR[agent_i])
 			write_cell_text(img, text=str(agent_i + 3), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
 							fill='white', margin=0.4)
 
-		#Draw explored/visited cells 
+		#Draw explored/visited cells
 		for row in range(self._grid_shape[0]):
 			for col in range(self._grid_shape[1]):
 				if self.grid[row][col] == 1:
