@@ -115,3 +115,5 @@ result.gif
 *.pkl
 *.pt
 *.pth
+
+.idea

@@ -1,11 +1,11 @@
-import gym
-import envs
-import pytest 
-import time 
-from utils.common import load_model
-from stable_baselines import PPO2
-import torch
 import argparse
+import time
+
+import envs
+import gym
+import torch
+from stable_baselines import PPO2
+
 
 def test_gridPath():
 		
