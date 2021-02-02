@@ -1,4 +1,4 @@
-from marlenv.envs.snake import SnakeEnv
+from marlenv.envs.snake_env import SnakeEnv
 
 test_env = SnakeEnv()
 

@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 
 
-def make_grid(height, width, empty_value=0, wall_value=1):
+def make_grid(height, width, empty_value=0, wall_value=1) -> np.ndarray:
     grid = np.full((height, width), fill_value=empty_value)
     # construct wall
     grid[[0, -1]] = wall_value
@@ -12,7 +12,7 @@ def make_grid(height, width, empty_value=0, wall_value=1):
     return grid
 
 
-def make_grid_from_txt(map_path: str, mapper: dict):
+def make_grid_from_txt(map_path: str, mapper: dict) -> np.ndarray:
     with open(map_path, 'r') as fp:
         lines = fp.read().split('\n')
 
@@ -21,12 +21,12 @@ def make_grid_from_txt(map_path: str, mapper: dict):
         # split string into list of char
         l = list(line)
         ls.append([mapper[c] for c in l])
-    data = np.asarray(ls)
+    grid = np.asarray(ls)
 
-    return data
+    return grid
 
 
-def random_empty_point(grid):
+def random_empty_coord(grid: np.ndarray):
     # has to sweep entire grid O(H*W)
     xs, ys = np.where(grid == 0)
     idx = np.random.randint(0, len(xs) - 1)
@@ -34,15 +34,15 @@ def random_empty_point(grid):
     return xs[idx], ys[idx]
 
 
-def random_empty_points(grid, num_points: int):
+def random_empty_coords(grid, num_coords: int):
     xs, ys = np.where(grid == 0)
-    idxes = np.random.randint(0, len(xs) - 1, size=num_points)
-    # points = np.stack(xs[idxes], ys[idxes]).T
+    idxes = np.random.randint(0, len(xs) - 1, size=num_coords)
+    # coords = np.stack(xs[idxes], ys[idxes]).T
 
     return xs[idxes], ys[idxes]
 
 
-def poll_empty_point(grid):
+def poll_empty_coord(grid):
     h, w = grid.shape
     # max index - wall * 2
     x, y = 0, 0
@@ -54,10 +54,10 @@ def poll_empty_point(grid):
     return x, y
 
 
-def draw(grid, points: List[tuple], value: int):
+def draw(grid, coords: List[tuple], value: int):
     h, w = grid.shape
     xs, ys = [], []
-    for p in points:
+    for p in coords:
         xs.append(p[0])
         ys.append(p[1])
 

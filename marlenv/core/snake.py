@@ -17,6 +17,9 @@ class Direction(Enum):
     DOWN = (1, 0)
     LEFT = (0, -1)
 
+    """
+    little magic for convenience, coord + direction
+    """
     def __radd__(self, other):
         dx, dy = self.value
         return other[0] + dx, other[1] + dy
@@ -27,16 +30,16 @@ class Direction(Enum):
 
 
 # class Segment:
-#     def __init__(self, point, direction):
-#         self.point = point
+#     def __init__(self, coord, direction):
+#         self.coord = coord
 #         self.direction = direction
 
 class Snake:
-    def __init__(self, idx, head_point, direction: Direction = Direction.RIGHT):
+    def __init__(self, idx, head_coord, direction: Direction = Direction.RIGHT):
         self.idx: int = idx
-        self.head_point: tuple = head_point
-        # left point of head for now
-        self.tail_point: tuple = (head_point[0], head_point[1] - 1)
+        self.head_coord: tuple = head_coord
+        # left coord of head for now
+        self.tail_coord: tuple = (head_coord[0], head_coord[1] - 1)
         self.direction: Direction = direction
         self.directions = deque([direction, direction])
 
@@ -47,23 +50,23 @@ class Snake:
         return len(self.directions)
 
     @property
-    def points(self):
-        point = self.head_point
-        points = []
+    def coords(self):
+        coord = self.head_coord
+        coords = []
         for direction in self.directions:
-            points.append(point)
-            point -= direction
+            coords.append(coord)
+            coord -= direction
 
-        return points
+        return coords
 
     def move(self):
-        self.head_point += self.direction
+        self.head_coord += self.direction
         self.directions.appendleft(self.direction)
 
-        prev_tail_point = None
+        prev_tail_coord = None
         if self.reward != Cell.FRUIT.value:
-            prev_tail_point = self.tail_point
+            prev_tail_coord = self.tail_coord
             tail_direction = self.directions.pop()
-            self.tail_point += tail_direction
+            self.tail_coord += tail_direction
 
-        return prev_tail_point
+        return prev_tail_coord
