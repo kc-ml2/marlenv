@@ -233,7 +233,7 @@ class SnakeEnv(gym.Env):
 # win terminal condition setting
 
 
-env = SnakeEnv(height=20, width=20)
+env = SnakeEnv(height=10, width=10)
 env.reset()
 dones = [False] * 4
 for _ in range(30):

@@ -52,12 +52,13 @@ class Snake:
     @property
     def coords(self):
         coord = self.head_coord
-        coords = []
+        coords = [coord]
         for direction in self.directions:
-            coords.append(coord)
             coord -= direction
+            coords.append(coord)
 
-        return coords
+        # exclude prev tail
+        return coords[:-1]
 
     def move(self):
         self.head_coord += self.direction
