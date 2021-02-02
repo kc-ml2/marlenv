@@ -6,9 +6,9 @@ class Cell(Enum):
     EMPTY = 0
     FRUIT = 1
     WALL = 2
-    HEAD = 3
+    TAIL = 3
     BODY = 4
-    TAIL = 5
+    HEAD = 5
 
 
 class Direction(Enum):
@@ -22,6 +22,10 @@ class Direction(Enum):
     """
 
     def __radd__(self, other):
+        dx, dy = self.value
+        return other[0] + dx, other[1] + dy
+
+    def __add__(self, other):
         dx, dy = self.value
         return other[0] + dx, other[1] + dy
 
@@ -40,15 +44,17 @@ class Snake:
         self.idx: int = idx
         self.head_coord: tuple = head_coord
         # left coord of head for now
-        self.tail_coord: tuple = (head_coord[0], head_coord[1] - 1)
+        self.tail_coord: tuple = head_coord - direction
         self.direction: Direction = direction
-        self.directions = deque([direction, direction])
+        self.directions = deque([direction])
 
         self.alive = True
+        self.fruit = False
+        self.death = False
         self.reward = 0.
 
     def __len__(self):
-        return len(self.directions)
+        return len(self.directions + 1)
 
     @property
     def coords(self):
@@ -57,18 +63,18 @@ class Snake:
         for direction in self.directions:
             coord -= direction
             coords.append(coord)
-
-        # exclude prev tail
-        return coords[:-1]
+        return coords
 
     def move(self):
         self.head_coord += self.direction
         self.directions.appendleft(self.direction)
 
         prev_tail_coord = None
-        if self.reward != Cell.FRUIT.value:
+        if not self.fruit:
             prev_tail_coord = self.tail_coord
             tail_direction = self.directions.pop()
             self.tail_coord += tail_direction
+        self.fruit = False
+        self.death = False
 
         return prev_tail_coord

@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import gym
+import math
 import numpy as np
 from gym.utils import seeding
 
@@ -16,6 +17,12 @@ class SnakeEnv(gym.Env):
         'right': 2,
     }
     action_keys = default_action_dict.keys()
+
+    action_angle_dict = {
+        0: 0.0,
+        1: -math.pi/2.0,
+        2: math.pi/2.0
+    }
 
     default_reward_dict = {
         'fruit': 1.0,
@@ -32,7 +39,7 @@ class SnakeEnv(gym.Env):
             height=20,
             width=20,
             *args,
-            **kwargs,
+            **kwargs
     ):
         """
         kwargs
@@ -55,10 +62,13 @@ class SnakeEnv(gym.Env):
         low = 0
         high = 255
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
-        self.observation_space = gym.spaces.Box(low, high, shape=self.grid_shape, dtype=np.uint8)
+        self.observation_space = gym.spaces.Box(
+            low, high, shape=self.grid_shape, dtype=np.uint8)
 
     def reset(self):
-        self.grid = make_grid(*self.grid_shape, empty_value=Cell.EMPTY.value, wall_value=Cell.WALL.value)
+        self.grid = make_grid(*self.grid_shape,
+                              empty_value=Cell.EMPTY.value,
+                              wall_value=Cell.WALL.value)
         self.snakes = self._generate_snakes()
         for snake in self.snakes:
             self.grid[snake.head_coord] = Cell.HEAD.value
@@ -109,16 +119,25 @@ class SnakeEnv(gym.Env):
         for snake, action in zip(self.snakes, actions):
             snake.direction = self._next_direction(snake.direction, action)
             next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
-            snake.alive, snake.reward = self._look_ahead(snake)
+            # snake.alive, snake.reward = self._look_ahead(snake)
+        dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
 
-        dead_idxes = self._check_headbang(next_head_coords)
+        # dead_idxes = self._check_headbang(next_head_coords)
         for idx in dead_idxes:
+            self.snakes[idx].death = True
             self.snakes[idx].alive = False
+        for idx in fruit_idxes:
+            self.snake[idx].fruit = True
 
         rews = []
         dones = []
         # postprocess
         for snake in self.snakes:
+            snake.reward = self.reward_dict['time'] * snake.alive
+            snake.reward += self.reward_dict['fruit'] * snake.fruit
+            snake.reward += self.reward_dict['lose'] * snake.death
+            # snake.reward += self.reward_dict['kill']
+            # snake.reward += self.reward_dict['win']
             self._update_grid(snake)
 
             rews.append(snake.reward)
@@ -132,19 +151,30 @@ class SnakeEnv(gym.Env):
 
         return obs
 
+    def _check_collision(self, next_head_coords):
+        dead_idxes = []
+        fruit_idxes = []
+        for coord, idxes in next_head_coords.items():
+            cell_value = self.grid[coord]
+            if len(idxes) > 1 or cell_value in (Cell.WALL.value, Cell.BODY.value):
+                dead_idxes.extend(idxes)
+            elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
+                fruit_idxes.append(idxes)
+        dead_idxes = list(set(dead_idxes))
+        fruit_idxes = list(set(fruit_idxes))
+        return dead_idxes, fruit_idxes
+
     def _look_ahead(self, snake):
         next_head_coord = snake.head_coord + snake.direction
         cell_value = self.grid[next_head_coord]
 
+        reward = self.reward_dict['time']
         if cell_value == Cell.FRUIT.value:
             alive = True
-            reward = self.reward_dict['fruit']
-        elif cell_value == Cell.EMPTY.value or cell_value == Cell.TAIL.value:
-            alive = True
-            reward = self.reward_dict['time']
+            reward += self.reward_dict['fruit']
         else:
             alive = False
-            reward = self.reward_dict['lose']
+            reward += self.reward_dict['lose']
 
         return alive, reward
 
@@ -188,7 +218,6 @@ class SnakeEnv(gym.Env):
         0 == noop
         1 == left
         2 == right
-        """
         if direction == Direction.UP:
             if action == self.action_dict['noop']:
                 return Direction.UP
@@ -217,6 +246,12 @@ class SnakeEnv(gym.Env):
                 return Direction.DOWN
             else:
                 return Direction.UP
+        """
+        angle = math.atan2(direction.value[1], direction.value[0])
+        new_coord = (int(math.cos(angle + self.action_angle_dict[action])),
+                     int(math.sin(angle + self.action_angle_dict[action])))
+        return Direction(new_coord)
+
 
 
 # TODO:
