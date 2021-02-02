@@ -127,6 +127,11 @@ class SnakeEnv(gym.Env):
             self.snakes[idx].death = True
             self.snakes[idx].alive = False
         for idx in fruit_idxes:
+            tail_coord = self.snakes[idx].tail_coord
+            if tail_coord in next_head_coords.keys():
+                for s in self.snakes[next_head_coords[tail_coord]]:
+                    s.death = True
+                    s.alive = False
             self.snake[idx].fruit = True
 
         rews = []
@@ -136,6 +141,7 @@ class SnakeEnv(gym.Env):
             snake.reward = self.reward_dict['time'] * snake.alive
             snake.reward += self.reward_dict['fruit'] * snake.fruit
             snake.reward += self.reward_dict['lose'] * snake.death
+            # TODO
             # snake.reward += self.reward_dict['kill']
             # snake.reward += self.reward_dict['win']
             self._update_grid(snake)
@@ -161,7 +167,7 @@ class SnakeEnv(gym.Env):
             elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
                 fruit_idxes.append(idxes)
         dead_idxes = list(set(dead_idxes))
-        fruit_idxes = list(set(fruit_idxes))
+        fruit_idxes = fruit_idxes
         return dead_idxes, fruit_idxes
 
     def _look_ahead(self, snake):
