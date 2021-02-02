@@ -20,6 +20,7 @@ class Direction(Enum):
     """
     little magic for convenience, coord + direction
     """
+
     def __radd__(self, other):
         dx, dy = self.value
         return other[0] + dx, other[1] + dy

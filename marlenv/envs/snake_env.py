@@ -139,7 +139,7 @@ class SnakeEnv(gym.Env):
         if cell_value == Cell.FRUIT.value:
             alive = True
             reward = self.reward_dict['fruit']
-        elif cell_value == Cell.EMPTY.value:
+        elif cell_value == Cell.EMPTY.value or cell_value == Cell.TAIL.value:
             alive = True
             reward = self.reward_dict['time']
         else:
@@ -232,11 +232,3 @@ class SnakeEnv(gym.Env):
 # obs -> cell states
 # win terminal condition setting
 
-
-env = SnakeEnv(height=10, width=10)
-env.reset()
-dones = [False] * 4
-for _ in range(30):
-    if not all(dones):
-        env.render()
-        _, _, dones, _ = env.step([0, 0, 0, 0])
