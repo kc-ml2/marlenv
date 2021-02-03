@@ -206,7 +206,7 @@ class SnakeEnv(gym.Env):
         return len(unique_list) == len(flat_list)
 
     def _generate_snakes(self):
-        candidates = dfs_sweep_empty(self.grid, 4)
+        candidates = dfs_sweep_empty(self.grid, self.snake_length)
         sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
         samples = [candidates[si] for si in sample_idx]
         while not self._check_overlap(samples):
