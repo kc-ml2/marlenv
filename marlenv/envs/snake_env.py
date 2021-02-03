@@ -6,7 +6,8 @@ import math
 import numpy as np
 from gym.utils import seeding
 
-from marlenv.core.grid_util import random_empty_coords, random_empty_coord, draw, make_grid
+from marlenv.core.grid_util import (
+    random_empty_coords, random_empty_coord, draw, make_grid, dfs_sweep_empty)
 from marlenv.core.snake import Direction, Snake, Cell
 
 
@@ -38,6 +39,7 @@ class SnakeEnv(gym.Env):
             num_snakes=4,
             height=20,
             width=20,
+            snake_length=4,
             *args,
             **kwargs
     ):
@@ -58,6 +60,7 @@ class SnakeEnv(gym.Env):
         self.grid_shape: Tuple = (height, width)
         self.grid: np.ndarray
         self.snakes: List[Snake]
+        self.snake_length = snake_length
 
         low = 0
         high = 255
@@ -71,6 +74,9 @@ class SnakeEnv(gym.Env):
                               wall_value=Cell.WALL.value)
         self.snakes = self._generate_snakes()
         for snake in self.snakes:
+            coords = snake.coords
+            for coord in coords:
+                self.grid[coord] = Cell.BODY.value
             self.grid[snake.head_coord] = Cell.HEAD.value
             self.grid[snake.tail_coord] = Cell.TAIL.value
 
@@ -105,7 +111,8 @@ class SnakeEnv(gym.Env):
     def step(self, actions):
         """
         Time Complexity:
-            O(3*num_snakes) + (O(H*W) when generate fruits(maybe better approach, like random polling))
+            O(3*num_snakes)
+            + (O(H*W) w/ fruits(maybe better approach, like random polling))
 
         updates snake status and grid
         all snake statuses are updated only in step method
@@ -117,8 +124,9 @@ class SnakeEnv(gym.Env):
         # head bang O(num_snakes), count duplicates by dictionary else it requires O(num_snakes^2)
         next_head_coords = defaultdict(list)
         for snake, action in zip(self.snakes, actions):
-            snake.direction = self._next_direction(snake.direction, action)
-            next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
+            if snake.alive:
+                snake.direction = self._next_direction(snake.direction, action)
+                next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
             # snake.alive, snake.reward = self._look_ahead(snake)
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
 
@@ -129,22 +137,25 @@ class SnakeEnv(gym.Env):
         for idx in fruit_idxes:
             tail_coord = self.snakes[idx].tail_coord
             if tail_coord in next_head_coords.keys():
-                for s in self.snakes[next_head_coords[tail_coord]]:
+                for s in [self.snakes[di] for di in next_head_coords[tail_coord]]:
                     s.death = True
                     s.alive = False
-            self.snake[idx].fruit = True
+            self.snakes[idx].fruit = True
 
         rews = []
         dones = []
         # postprocess
         for snake in self.snakes:
-            snake.reward = self.reward_dict['time'] * snake.alive
-            snake.reward += self.reward_dict['fruit'] * snake.fruit
-            snake.reward += self.reward_dict['lose'] * snake.death
-            # TODO
-            # snake.reward += self.reward_dict['kill']
-            # snake.reward += self.reward_dict['win']
-            self._update_grid(snake)
+            if not snake.death and not snake.alive:
+                snake.reward = 0.
+            else:
+                snake.reward = self.reward_dict['time'] * snake.alive
+                snake.reward += self.reward_dict['fruit'] * snake.fruit
+                snake.reward += self.reward_dict['lose'] * snake.death
+                # TODO
+                # snake.reward += self.reward_dict['kill']
+                # snake.reward += self.reward_dict['win']
+                self._update_grid(snake)
 
             rews.append(snake.reward)
             dones.append(not snake.alive)
@@ -162,57 +173,55 @@ class SnakeEnv(gym.Env):
         fruit_idxes = []
         for coord, idxes in next_head_coords.items():
             cell_value = self.grid[coord]
-            if len(idxes) > 1 or cell_value in (Cell.WALL.value, Cell.BODY.value):
+            if len(idxes) > 1 or cell_value in (Cell.WALL.value,
+                                                Cell.BODY.value):
                 dead_idxes.extend(idxes)
             elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
-                fruit_idxes.append(idxes)
+                fruit_idxes.extend(idxes)
         dead_idxes = list(set(dead_idxes))
         fruit_idxes = fruit_idxes
         return dead_idxes, fruit_idxes
-
-    def _look_ahead(self, snake):
-        next_head_coord = snake.head_coord + snake.direction
-        cell_value = self.grid[next_head_coord]
-
-        reward = self.reward_dict['time']
-        if cell_value == Cell.FRUIT.value:
-            alive = True
-            reward += self.reward_dict['fruit']
-        else:
-            alive = False
-            reward += self.reward_dict['lose']
-
-        return alive, reward
 
     def _update_grid(self, snake):
         if snake.alive:
             self.grid[snake.head_coord] = Cell.BODY.value
             # could be current or prev if ate fruit
             prev_tail_coord = snake.move()
-            self.grid[snake.head_coord] = Cell.HEAD.value
             if prev_tail_coord:
+                # Didn't eat the fruit
                 self.grid[prev_tail_coord] = Cell.EMPTY.value
+            self.grid[snake.head_coord] = Cell.HEAD.value
 
             self.grid[snake.tail_coord] = Cell.TAIL.value
         else:
             if draw(self.grid, snake.coords, Cell.EMPTY.value) is False:
                 print('draw failed')
+            snake.move()
 
-    def _check_headbang(self, next_head_coords):
-        dead_idxes = []
-        for coord, idxes in next_head_coords.items():
-            if len(idxes) > 1:
-                dead_idxes.extend(idxes)
-
-        return dead_idxes
+    def _check_overlap(self, list_of_coords):
+        flat_list = []
+        for element in list_of_coords:
+            flat_list.extend(element)
+        unique_list = list(set(flat_list))
+        return len(unique_list) == len(flat_list)
 
     def _generate_snakes(self):
-        snakes = []
-        for idx in range(self.num_snakes):
-            coord = random_empty_coord(self.grid)
-            snakes.append(Snake(idx, coord, Direction.RIGHT))
+        candidates = dfs_sweep_empty(self.grid, 4)
+        sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
+        samples = [candidates[si] for si in sample_idx]
+        while not self._check_overlap(samples):
+            sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
+            samples = [candidates[si] for si in sample_idx]
+        snakes = [Snake(idx, coords) for idx, coords in enumerate(samples)]
 
         return snakes
+
+        # snakes = []
+        # for idx in range(self.num_snakes):
+        #     coord = random_empty_coord(self.grid)
+        #     snakes.append(Snake(idx, coord, Direction.RIGHT))
+
+        # return snakes
 
     def _generate_fruits(self, num_fruits=1):
         xs, ys = random_empty_coords(self.grid, num_coords=num_fruits)
@@ -224,38 +233,11 @@ class SnakeEnv(gym.Env):
         0 == noop
         1 == left
         2 == right
-        if direction == Direction.UP:
-            if action == self.action_dict['noop']:
-                return Direction.UP
-            elif action == self.action_dict['left']:
-                return Direction.LEFT
-            else:
-                return Direction.RIGHT
-        elif direction == Direction.RIGHT:
-            if action == self.action_dict['noop']:
-                return Direction.RIGHT
-            elif action == self.action_dict['left']:
-                return Direction.UP
-            else:
-                return Direction.DOWN
-        elif direction == Direction.DOWN:
-            if action == self.action_dict['noop']:
-                return Direction.DOWN
-            elif action == self.action_dict['left']:
-                return Direction.RIGHT
-            else:
-                return Direction.LEFT
-        elif direction == Direction.LEFT:
-            if action == self.action_dict['noop']:
-                return Direction.LEFT
-            elif action == self.action_dict['left']:
-                return Direction.DOWN
-            else:
-                return Direction.UP
+        Change direction by +-90 degrees
         """
-        angle = math.atan2(direction.value[1], direction.value[0])
-        new_coord = (int(math.cos(angle + self.action_angle_dict[action])),
-                     int(math.sin(angle + self.action_angle_dict[action])))
+        angle = math.atan2(direction.value[0], direction.value[1])
+        new_coord = (int(math.sin(angle + self.action_angle_dict[action])),
+                     int(math.cos(angle + self.action_angle_dict[action])))
         return Direction(new_coord)
 
 

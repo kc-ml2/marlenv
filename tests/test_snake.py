@@ -24,4 +24,5 @@ def test():
     for _ in range(30):
         if not all(dones):
             env.render()
-            _, _, dones, _ = env.step([0, 0, 0, 0])
+            ac = [env.action_space.sample() for _ in range(4)]
+            _, _, dones, _ = env.step(ac)

@@ -1,6 +1,9 @@
 from typing import List
 
 import numpy as np
+import copy
+
+SHIFTS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
 
 def make_grid(height, width, empty_value=0, wall_value=1) -> np.ndarray:
@@ -24,6 +27,86 @@ def make_grid_from_txt(map_path: str, mapper: dict) -> np.ndarray:
     grid = np.asarray(ls)
 
     return grid
+
+
+def find_k_consec(grid: np.ndarray, k: int):
+    # Returns list of possible k consecutive cells from given grid
+    empty_mask = (grid == 0)
+    answers = []
+    for r in range(grid.shape[0]):
+        start = None
+        end = None
+        for rc in range(grid.shape[1]):
+            if empty_mask[r, rc]:
+                if start is None:
+                    start = rc
+                else:
+                    end = rc
+                if end - start == k + 1:
+                    answers.append([(r, start), (r, end)])
+                    start += 1
+            else:
+                start = None
+                end = None
+    for c in range(grid.shape[1]):
+        start = None
+        end = None
+        for cr in range(grid.shape[0]):
+            if empty_mask[r, rc]:
+                if start is None:
+                    start = cr
+                else:
+                    end = cr
+                if end - start == k + 1:
+                    answers.append([(start, c), (end, c)])
+                    start += 1
+            else:
+                start = None
+                end = None
+    return answers
+
+
+def dfs_sweep_empty(grid: np.ndarray, k: int):
+    answers = []
+    empty_mask = grid == 0
+    for r in range(grid.shape[0]):
+        for c in range(grid.shape[1]):
+            if empty_mask[(r, c)]:
+                answers.extend(_dfs_helper(empty_mask, (r, c), [], k))
+    return answers
+
+
+def _dfs_helper(grid: np.ndarray, node: tuple, history: List[tuple], k: int):
+    history.append(node)
+    answers = []
+    if len(history) == k:
+        answers.append(history)
+    else:
+        for shift in SHIFTS:
+            # Get shifted rows and colums
+            rs, cs = node[0] + shift[0], node[1] + shift[1]
+            candidate = (rs, cs)
+            if _inbound(candidate, grid) and not candidate in history and grid[candidate]:
+                if not _head_blocked(grid, history, candidate):
+                    answers.extend(
+                        _dfs_helper(grid, candidate, copy.deepcopy(history), k)
+                    )
+    return answers
+
+
+def _head_blocked(mask: np.ndarray, history: List[tuple], extra_node: tuple):
+    check_status = 0
+    first_node = history[0]
+    for shift in SHIFTS:
+        node = first_node[0] + shift[0], first_node[1] + shift[1]
+        if mask[node] == 0 or node in history or node == extra_node or not _inbound(node, mask):
+            check_status += 1
+    return check_status == len(SHIFTS)
+
+
+def _inbound(node, grid):
+    r, c = node
+    return r >= 0 and c >= 0 and r < grid.shape[0] and c < grid.shape[1]
 
 
 def random_empty_coord(grid: np.ndarray):
