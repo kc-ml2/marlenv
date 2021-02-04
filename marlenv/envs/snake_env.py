@@ -76,9 +76,9 @@ class SnakeEnv(gym.Env):
         for snake in self.snakes:
             coords = snake.coords
             for coord in coords:
-                self.grid[coord] = Cell.BODY.value
-            self.grid[snake.head_coord] = Cell.HEAD.value
-            self.grid[snake.tail_coord] = Cell.TAIL.value
+                self.grid[coord] = Cell.BODY.value + 10 * snake.idx
+            self.grid[snake.head_coord] = Cell.HEAD.value + 10 * snake.idx
+            self.grid[snake.tail_coord] = Cell.TAIL.value + 10 * snake.idx
 
         xs, ys = self._generate_fruits(self.num_fruits)
         self.grid[xs, ys] = Cell.FRUIT.value
@@ -100,7 +100,7 @@ class SnakeEnv(gym.Env):
 
         CHR2SYM = {v: k for k, v in SYM2CHR.items()}
 
-        data = np.vectorize(SYM2CHR.get)(self.grid)
+        data = np.vectorize(SYM2CHR.get)(self.grid % 10)
         data = [''.join(i) for i in data]
         data = '\n'.join(data)
         print(data)
@@ -121,16 +121,13 @@ class SnakeEnv(gym.Env):
         if isinstance(actions, int):
             actions = [actions]
         # preprocess
-        # head bang O(num_snakes), count duplicates by dictionary else it requires O(num_snakes^2)
         next_head_coords = defaultdict(list)
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
                 snake.direction = self._next_direction(snake.direction, action)
                 next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
-            # snake.alive, snake.reward = self._look_ahead(snake)
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
 
-        # dead_idxes = self._check_headbang(next_head_coords)
         for idx in dead_idxes:
             self.snakes[idx].death = True
             self.snakes[idx].alive = False
@@ -140,6 +137,7 @@ class SnakeEnv(gym.Env):
                 for s in [self.snakes[di] for di in next_head_coords[tail_coord]]:
                     s.death = True
                     s.alive = False
+                    self.snakes[idx].kill += 1
             self.snakes[idx].fruit = True
 
         rews = []
@@ -152,9 +150,9 @@ class SnakeEnv(gym.Env):
                 snake.reward = self.reward_dict['time'] * snake.alive
                 snake.reward += self.reward_dict['fruit'] * snake.fruit
                 snake.reward += self.reward_dict['lose'] * snake.death
+                snake.reward += self.reward_dict['kill'] * snake.kills
                 # TODO
-                # snake.reward += self.reward_dict['kill']
-                # snake.reward += self.reward_dict['win']
+                # snake.reward += self.reward_dict['win'] * snake.win
                 self._update_grid(snake)
 
             rews.append(snake.reward)
@@ -172,10 +170,12 @@ class SnakeEnv(gym.Env):
         dead_idxes = []
         fruit_idxes = []
         for coord, idxes in next_head_coords.items():
-            cell_value = self.grid[coord]
+            cell_value = self.grid[coord] % 10
             if len(idxes) > 1 or cell_value in (Cell.WALL.value,
                                                 Cell.BODY.value):
                 dead_idxes.extend(idxes)
+                if cell_value == Cell.BODY.value:
+                    self.snakes[self.grid[coord] // 10].kills += 1
             elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
                 fruit_idxes.extend(idxes)
         dead_idxes = list(set(dead_idxes))
@@ -184,15 +184,15 @@ class SnakeEnv(gym.Env):
 
     def _update_grid(self, snake):
         if snake.alive:
-            self.grid[snake.head_coord] = Cell.BODY.value
+            self.grid[snake.head_coord] = Cell.BODY.value + 10 * snake.idx
             # could be current or prev if ate fruit
             prev_tail_coord = snake.move()
             if prev_tail_coord:
                 # Didn't eat the fruit
                 self.grid[prev_tail_coord] = Cell.EMPTY.value
-            self.grid[snake.head_coord] = Cell.HEAD.value
+            self.grid[snake.head_coord] = Cell.HEAD.value + 10 * snake.idx
 
-            self.grid[snake.tail_coord] = Cell.TAIL.value
+            self.grid[snake.tail_coord] = Cell.TAIL.value + 10 * snake.idx
         else:
             if draw(self.grid, snake.coords, Cell.EMPTY.value) is False:
                 print('draw failed')

@@ -70,12 +70,17 @@ class Snake:
         self.directions = deque(direction_list)
 
         self.alive = True
-        self.fruit = False
-        self.death = False
-        self.reward = 0.
+        self._reset_reward_state()
 
     def __len__(self):
         return len(self.directions + 1)
+
+    def _reset_reward_state(self):
+        self.fruit = False
+        self.death = False
+        self.kills = 0
+        self.win = False
+        self.reward = 0.
 
     @property
     def coords(self):
@@ -84,6 +89,7 @@ class Snake:
         for direction in self.directions:
             coord -= direction
             coords.append(coord)
+
         return coords
 
     def move(self):
@@ -95,7 +101,6 @@ class Snake:
             prev_tail_coord = self.tail_coord
             tail_direction = self.directions.pop()
             self.tail_coord += tail_direction
-        self.fruit = False
-        self.death = False
+        self._reset_reward_state()
 
         return prev_tail_coord
