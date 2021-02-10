@@ -82,6 +82,7 @@ class SnakeEnv(gym.Env):
 
         xs, ys = self._generate_fruits(self.num_fruits)
         self.grid[xs, ys] = Cell.FRUIT.value
+        self.alive_snakes = self.num_snakes
 
     def seed(self, seed=42):
         self.np_random, seed = seeding.np_random(seed)
@@ -129,11 +130,10 @@ class SnakeEnv(gym.Env):
                 snake.direction = self._next_direction(snake.direction, action)
                 next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
                 alive_snakes.append(snake.idx)
-        if len(alive_snakes) == 1:
-            self.snakes[alive_snakes[0]].win = True
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
         print(dead_idxes)
 
+        self.alive_snakes -= len(dead_idxes)
         for idx in dead_idxes:
             self.snakes[idx].death = True
             self.snakes[idx].alive = False
@@ -143,8 +143,15 @@ class SnakeEnv(gym.Env):
                 for s in [self.snakes[di] for di in next_head_coords[tail_coord]]:
                     s.death = True
                     s.alive = False
+                    self.alive_snakes -= 1
                     self.snakes[idx].kills += 1
             self.snakes[idx].fruit = True
+        if self.alive_snakes == 1:
+            for snake in self.snakes:
+                if snake.alive:
+                    print('player {} wins!'.format(snake.idx))
+                    snake.win = True
+                    break
 
         rews = []
         dones = []

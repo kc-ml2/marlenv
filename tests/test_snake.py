@@ -15,10 +15,10 @@ from marlenv.envs.snake_env import SnakeEnv
 #
 # def test_render():
 #     assert False
-num_snake = 8
+num_snake = 6
 
 def test():
-    env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
+    env = gym.make('Snake-v1', height=10, width=10, num_fruits=4,
                    num_snakes=num_snake)
     print(env.num_fruits)
     env.reset()
