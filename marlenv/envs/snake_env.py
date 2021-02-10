@@ -36,10 +36,10 @@ class SnakeEnv(gym.Env):
 
     def __init__(
             self,
-            num_snakes=4,
             height=20,
             width=20,
-            snake_length=4,
+            num_snakes=4,
+            snake_length=3,
             *args,
             **kwargs
     ):
@@ -120,13 +120,19 @@ class SnakeEnv(gym.Env):
 
         if isinstance(actions, int):
             actions = [actions]
+        assert len(actions) == self.num_snakes
         # preprocess
         next_head_coords = defaultdict(list)
+        alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
                 snake.direction = self._next_direction(snake.direction, action)
                 next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
+                alive_snakes.append(snake.idx)
+        if len(alive_snakes) == 1:
+            self.snakes[alive_snakes[0]].win = True
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
+        print(dead_idxes)
 
         for idx in dead_idxes:
             self.snakes[idx].death = True
@@ -137,7 +143,7 @@ class SnakeEnv(gym.Env):
                 for s in [self.snakes[di] for di in next_head_coords[tail_coord]]:
                     s.death = True
                     s.alive = False
-                    self.snakes[idx].kill += 1
+                    self.snakes[idx].kills += 1
             self.snakes[idx].fruit = True
 
         rews = []
@@ -151,8 +157,7 @@ class SnakeEnv(gym.Env):
                 snake.reward += self.reward_dict['fruit'] * snake.fruit
                 snake.reward += self.reward_dict['lose'] * snake.death
                 snake.reward += self.reward_dict['kill'] * snake.kills
-                # TODO
-                # snake.reward += self.reward_dict['win'] * snake.win
+                snake.reward += self.reward_dict['win'] * snake.win
                 self._update_grid(snake)
 
             rews.append(snake.reward)
@@ -172,7 +177,8 @@ class SnakeEnv(gym.Env):
         for coord, idxes in next_head_coords.items():
             cell_value = self.grid[coord] % 10
             if len(idxes) > 1 or cell_value in (Cell.WALL.value,
-                                                Cell.BODY.value):
+                                                Cell.BODY.value,
+                                                Cell.HEAD.value):
                 dead_idxes.extend(idxes)
                 if cell_value == Cell.BODY.value:
                     self.snakes[self.grid[coord] // 10].kills += 1
@@ -189,7 +195,8 @@ class SnakeEnv(gym.Env):
             prev_tail_coord = snake.move()
             if prev_tail_coord:
                 # Didn't eat the fruit
-                self.grid[prev_tail_coord] = Cell.EMPTY.value
+                if self.grid[prev_tail_coord] == Cell.TAIL.value + 10 * snake.idx:
+                    self.grid[prev_tail_coord] = Cell.EMPTY.value
             self.grid[snake.head_coord] = Cell.HEAD.value + 10 * snake.idx
 
             self.grid[snake.tail_coord] = Cell.TAIL.value + 10 * snake.idx
@@ -198,7 +205,7 @@ class SnakeEnv(gym.Env):
                 print('draw failed')
             snake.move()
 
-    def _check_overlap(self, list_of_coords):
+    def _clear_overlap(self, list_of_coords):
         flat_list = []
         for element in list_of_coords:
             flat_list.extend(element)
@@ -207,21 +214,18 @@ class SnakeEnv(gym.Env):
 
     def _generate_snakes(self):
         candidates = dfs_sweep_empty(self.grid, self.snake_length)
-        sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
-        samples = [candidates[si] for si in sample_idx]
-        while not self._check_overlap(samples):
+        # chunk_size = len(candidates) // self.num_snakes
+        while True:
+            # sample_idx = np.random.randint(chunk_size, size=(self.num_snakes,))
+            # samples = [candidates[si + i * chunk_size]
+            #         for i, si in enumerate(sample_idx)]
             sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
             samples = [candidates[si] for si in sample_idx]
+            if self._clear_overlap(samples):
+                break
         snakes = [Snake(idx, coords) for idx, coords in enumerate(samples)]
 
         return snakes
-
-        # snakes = []
-        # for idx in range(self.num_snakes):
-        #     coord = random_empty_coord(self.grid)
-        #     snakes.append(Snake(idx, coord, Direction.RIGHT))
-
-        # return snakes
 
     def _generate_fruits(self, num_fruits=1):
         xs, ys = random_empty_coords(self.grid, num_coords=num_fruits)
@@ -249,7 +253,7 @@ class SnakeEnv(gym.Env):
 # coord vs pos(position) vs coord(coordinate)
 # pygame
 # 1player survive win
-# body hit other head kill
+# Done: body hit other head kill
 
 # custom reward structure
 # obs -> cell states
