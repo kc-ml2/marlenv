@@ -21,8 +21,8 @@ class SnakeEnv(gym.Env):
 
     action_angle_dict = {
         0: 0.0,
-        1: -math.pi/2.0,
-        2: math.pi/2.0
+        1: math.pi/2.0,
+        2: -math.pi/2.0
     }
 
     default_reward_dict = {
@@ -191,11 +191,14 @@ class SnakeEnv(gym.Env):
         fruit_idxes = []
         for coord, idxes in next_head_coords.items():
             cell_value = self.grid[coord] % 10
+            # Head collision or clear death
             if len(idxes) > 1 or cell_value in (Cell.WALL.value,
                                                 Cell.BODY.value,
                                                 Cell.HEAD.value):
+                if len(idxes) > 1:
+                    print("Death by collision", idxes)
                 dead_idxes.extend(idxes)
-                if cell_value == Cell.BODY.value:
+                if cell_value in (Cell.BODY.value, Cell.HEAD.value):
                     self.snakes[self.grid[coord] // 10].kills += 1
             elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
                 fruit_idxes.extend(idxes)
@@ -218,7 +221,10 @@ class SnakeEnv(gym.Env):
 
             self.grid[snake.tail_coord] = Cell.TAIL.value + snake_id
         else:
-            if draw(self.grid, snake.coords, Cell.EMPTY.value) is False:
+            coord_list = snake.coords
+            if self.grid[snake.coords[-1]] // 10 != snake.idx:
+                coord_list = coord_list[:-1]
+            if draw(self.grid, coord_list, Cell.EMPTY.value) is False:
                 print('draw failed')
             snake.move()
 
@@ -257,9 +263,9 @@ class SnakeEnv(gym.Env):
         2 == right
         Change direction by +-90 degrees
         """
-        angle = math.atan2(direction.value[0], direction.value[1])
-        new_coord = (int(math.sin(angle + self.action_angle_dict[action])),
-                     int(math.cos(angle + self.action_angle_dict[action])))
+        angle = math.atan2(direction.value[1], direction.value[0])
+        new_coord = (int(math.cos(angle + self.action_angle_dict[action])),
+                     int(math.sin(angle + self.action_angle_dict[action])))
         return Direction(new_coord)
 
 
