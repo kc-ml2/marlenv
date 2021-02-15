@@ -51,12 +51,15 @@ class SnakeEnv(gym.Env):
 
         reward_dict = kwargs.pop('reward_dict', SnakeEnv.default_reward_dict)
         if reward_dict.keys() != SnakeEnv.reward_keys:
-            raise KeyError(f'reward dict keys must correspond to {SnakeEnv.reward_keys}')
+            raise KeyError(
+                f'reward dict keys must correspond to {SnakeEnv.reward_keys}'
+            )
         else:
             self.reward_dict = reward_dict
 
         self.num_snakes = num_snakes
-        self.num_fruits = kwargs.pop('num_fruits', int(round(num_snakes * 0.8)))
+        self.num_fruits = kwargs.pop('num_fruits',
+                                     int(round(num_snakes * 0.8)))
         self.grid_shape: Tuple = (height, width)
         self.grid: np.ndarray
         self.snakes: List[Snake]
@@ -75,10 +78,11 @@ class SnakeEnv(gym.Env):
         self.snakes = self._generate_snakes()
         for snake in self.snakes:
             coords = snake.coords
+            snake_id = 10 * snake.idx
             for coord in coords:
-                self.grid[coord] = Cell.BODY.value + 10 * snake.idx
-            self.grid[snake.head_coord] = Cell.HEAD.value + 10 * snake.idx
-            self.grid[snake.tail_coord] = Cell.TAIL.value + 10 * snake.idx
+                self.grid[coord] = Cell.BODY.value + snake_id
+            self.grid[snake.head_coord] = Cell.HEAD.value + snake_id
+            self.grid[snake.tail_coord] = Cell.TAIL.value + snake_id
 
         xs, ys = self._generate_fruits(self.num_fruits)
         self.grid[xs, ys] = Cell.FRUIT.value
@@ -128,7 +132,8 @@ class SnakeEnv(gym.Env):
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
                 snake.direction = self._next_direction(snake.direction, action)
-                next_head_coords[snake.head_coord + snake.direction].append(snake.idx)
+                new_head_coord = snake.head_coord + snake.direction
+                next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
         print(dead_idxes)
@@ -140,7 +145,8 @@ class SnakeEnv(gym.Env):
         for idx in fruit_idxes:
             tail_coord = self.snakes[idx].tail_coord
             if tail_coord in next_head_coords.keys():
-                for s in [self.snakes[di] for di in next_head_coords[tail_coord]]:
+                for s in [self.snakes[di]
+                          for di in next_head_coords[tail_coord]]:
                     s.death = True
                     s.alive = False
                     self.alive_snakes -= 1
@@ -175,10 +181,12 @@ class SnakeEnv(gym.Env):
         return obs, rews, dones, None
 
     def _encode(self, obs):
+        # Encode the observation. May be overridden
 
         return obs
 
     def _check_collision(self, next_head_coords):
+        # Check for head, body, wall, fruit collision and assign new status
         dead_idxes = []
         fruit_idxes = []
         for coord, idxes in next_head_coords.items():
@@ -196,23 +204,26 @@ class SnakeEnv(gym.Env):
         return dead_idxes, fruit_idxes
 
     def _update_grid(self, snake):
+        # Update the grid according to a snake's status
         if snake.alive:
-            self.grid[snake.head_coord] = Cell.BODY.value + 10 * snake.idx
+            snake_id = 10 * snake.idx  # For distinguishing snakes in grid
+            self.grid[snake.head_coord] = Cell.BODY.value + snake_id
             # could be current or prev if ate fruit
             prev_tail_coord = snake.move()
             if prev_tail_coord:
                 # Didn't eat the fruit
-                if self.grid[prev_tail_coord] == Cell.TAIL.value + 10 * snake.idx:
+                if self.grid[prev_tail_coord] == Cell.TAIL.value + snake_id:
                     self.grid[prev_tail_coord] = Cell.EMPTY.value
-            self.grid[snake.head_coord] = Cell.HEAD.value + 10 * snake.idx
+            self.grid[snake.head_coord] = Cell.HEAD.value + snake_id
 
-            self.grid[snake.tail_coord] = Cell.TAIL.value + 10 * snake.idx
+            self.grid[snake.tail_coord] = Cell.TAIL.value + snake_id
         else:
             if draw(self.grid, snake.coords, Cell.EMPTY.value) is False:
                 print('draw failed')
             snake.move()
 
     def _clear_overlap(self, list_of_coords):
+        # Check for overlap in given snake coordinates
         flat_list = []
         for element in list_of_coords:
             flat_list.extend(element)
@@ -220,13 +231,13 @@ class SnakeEnv(gym.Env):
         return len(unique_list) == len(flat_list)
 
     def _generate_snakes(self):
+        # Depth-first-search through the grid for possible snake positions
         candidates = dfs_sweep_empty(self.grid, self.snake_length)
-        # chunk_size = len(candidates) // self.num_snakes
         while True:
-            # sample_idx = np.random.randint(chunk_size, size=(self.num_snakes,))
-            # samples = [candidates[si + i * chunk_size]
-            #         for i, si in enumerate(sample_idx)]
-            sample_idx = np.random.permutation(len(candidates))[:self.num_snakes]
+            # Randomly select init snake poses untill no overlap
+            sample_idx = np.random.permutation(
+                len(candidates)
+            )[:self.num_snakes]
             samples = [candidates[si] for si in sample_idx]
             if self._clear_overlap(samples):
                 break
@@ -256,13 +267,8 @@ class SnakeEnv(gym.Env):
 # TODO:
 # encoding ->
 # reward engineering -> wrapper
+# custom reward structure
 # fruits -> cell list
 # coord vs pos(position) vs coord(coordinate)
 # pygame
-# 1player survive win
-# Done: body hit other head kill
-
-# custom reward structure
 # obs -> cell states
-# win terminal condition setting
-
