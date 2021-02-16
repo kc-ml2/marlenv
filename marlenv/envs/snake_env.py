@@ -165,15 +165,16 @@ class SnakeEnv(gym.Env):
         for snake in self.snakes:
             if not snake.death and not snake.alive:
                 snake.reward = 0.
+                rews.append(snake.reward)
             else:
                 snake.reward = self.reward_dict['time'] * snake.alive
                 snake.reward += self.reward_dict['fruit'] * snake.fruit
                 snake.reward += self.reward_dict['lose'] * snake.death
                 snake.reward += self.reward_dict['kill'] * snake.kills
                 snake.reward += self.reward_dict['win'] * snake.win
+                rews.append(snake.reward)
                 self._update_grid(snake)
 
-            rews.append(snake.reward)
             dones.append(not snake.alive)
 
         obs = self._encode(self.grid)
