@@ -40,6 +40,7 @@ class SnakeEnv(gym.Env):
             width=20,
             num_snakes=4,
             snake_length=3,
+            vision_range=None,
             *args,
             **kwargs
     ):
@@ -64,6 +65,7 @@ class SnakeEnv(gym.Env):
         self.grid: np.ndarray
         self.snakes: List[Snake]
         self.snake_length = snake_length
+        self.vision_range = vision_range
 
         low = 0
         high = 255
@@ -177,17 +179,17 @@ class SnakeEnv(gym.Env):
 
             dones.append(not snake.alive)
 
-        obs = self._encode(self.grid)
+        obs = self._encode(self.grid, vision_range=self.vision_range)
 
         return obs, rews, dones, None
 
-    def _encode(self, obs):
+    def _encode(self, obs, vision_range=None):
         # Encode the observation. obs is self.grid
         # Returns the obs in HxWxC
         # May be overriden for customized observation
         env_objs = np.zeros([*obs.shape, 2], dtype=np.float32)
-        snake_objs = [np.zeros([*obs.shape, 3], dtype=np.float32)
-                      for _ in range(self.num_snakes)]
+        snake_objs = np.zeros([*obs.shape,
+                               3 * 2, self.num_snakes], dtype=np.float32)
         for r in range(obs.shape[0]):
             for c in range(obs.shape[1]):
                 cell_value = obs[r, c]
@@ -196,10 +198,35 @@ class SnakeEnv(gym.Env):
                 elif cell_value != Cell.EMPTY.value:
                     snake_id = cell_value // 10
                     obj_id = cell_value % 10
-                    snake_objs[snake_id][r, c, obj_id - 3] = 1
-        encoded_obs = [np.concatenate([env_objs, snake_obj], axis=-1)
-                       for snake_obj in snake_objs]
+                    myself = np.zeros(self.num_snakes)
+                    myself[snake_id] = 1
+                    snake_objs[r, c, obj_id, :] = myself
+                    snake_objs[r, c, obj_id - 3, :] = 1 - myself
+        encoded_obs = [np.concatenate([env_objs, snake_objs[..., idx]],
+                                      axis=-1)
+                       for idx in range(self.num_snakes)]
 
+        if vision_range:
+            cropped_encoded_obs = []
+            for full_obs in encoded_obs:
+                head_pos = np.unravel_index(full_obs[:, :, 5].argmax(),
+                                            full_obs[:, :, 5].shape)
+                head_pos = np.array(head_pos)
+                crop_range_min = np.maximum(head_pos - vision_range, 0)
+                crop_range_max = np.minimum(head_pos + vision_range,
+                                            np.array(obs.shape) - 1)
+                cropped_obs = np.zeros((vision_range * 2 + 1,
+                                        vision_range * 2 + 1,
+                                        full_obs.shape[-1]))
+                start = crop_range_min - head_pos + vision_range
+                end = crop_range_max - head_pos + vision_range
+                cropped_full_obs = full_obs[
+                    crop_range_min[0]:crop_range_max[0]+1,
+                    crop_range_min[1]:crop_range_max[1]+1, :]
+                cropped_obs[start[0]:end[0]+1,
+                            start[1]:end[1]+1, :] = cropped_full_obs
+                cropped_encoded_obs.append(cropped_obs)
+            encoded_obs = cropped_encoded_obs
         return encoded_obs
 
     def _check_collision(self, next_head_coords):
