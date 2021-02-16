@@ -182,9 +182,25 @@ class SnakeEnv(gym.Env):
         return obs, rews, dones, None
 
     def _encode(self, obs):
-        # Encode the observation. May be overridden
+        # Encode the observation. obs is self.grid
+        # Returns the obs in HxWxC
+        # May be overriden for customized observation
+        env_objs = np.zeros([*obs.shape, 2], dtype=np.float32)
+        snake_objs = [np.zeros([*obs.shape, 3], dtype=np.float32)
+                      for _ in range(self.num_snakes)]
+        for r in range(obs.shape[0]):
+            for c in range(obs.shape[1]):
+                cell_value = obs[r, c]
+                if cell_value in (Cell.WALL.value, Cell.FRUIT.value):
+                    env_objs[r, c, cell_value - 1] = 1
+                elif cell_value != Cell.EMPTY.value:
+                    snake_id = cell_value // 10
+                    obj_id = cell_value % 10
+                    snake_objs[snake_id][r, c, obj_id - 3] = 1
+        encoded_obs = [np.concatenate([env_objs, snake_obj], axis=-1)
+                       for snake_obj in snake_objs]
 
-        return obs
+        return encoded_obs
 
     def _check_collision(self, next_head_coords):
         # Check for head, body, wall, fruit collision and assign new status

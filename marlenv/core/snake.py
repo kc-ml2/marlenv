@@ -4,11 +4,11 @@ from enum import Enum
 
 class Cell(Enum):
     EMPTY = 0
-    FRUIT = 1
-    WALL = 2
-    TAIL = 3
+    WALL = 1
+    FRUIT = 2
+    HEAD = 3
     BODY = 4
-    HEAD = 5
+    TAIL = 5
 
 
 class Direction(Enum):

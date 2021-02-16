@@ -31,11 +31,11 @@ def test():
     env = gym.make('Snake-v1', height=10, width=10, num_fruits=4,
                    num_snakes=num_snake, reward_dict=custom_rew)
     print(env.num_fruits)
-    env.reset()
+    obs = env.reset()
     dones = [False] * num_snake
     for _ in range(30):
         if not all(dones):
             env.render()
             ac = [env.action_space.sample() for _ in range(num_snake)]
-            _, rews, dones, _ = env.step(ac)
+            obs, rews, dones, _ = env.step(ac)
             print(rews)
