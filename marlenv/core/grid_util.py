@@ -163,7 +163,9 @@ def image_from_grid(grid, enum, color_dict, max_size=300):
             cell_value = grid[r, c] % 10
             cell_id = grid[r, c] // 10
             color_list = color_dict[enum(cell_value).name]
-            rgb_array[r, c] = np.array(color_list[cell_id % len(color_list)])
+            cell_color = np.array(color_list[cell_id % len(color_list)])
+            cycle = cell_id // len(color_list)
+            rgb_array[r, c] = (cell_color * 0.7**cycle).astype(np.uint8)
     rgb_array = np.repeat(np.repeat(rgb_array, scale, axis=0), scale, axis=1)
     image = Image.fromarray(rgb_array, 'RGB')
 

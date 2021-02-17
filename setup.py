@@ -8,5 +8,5 @@ setup(
     author='Tae Min Ha, Daniel Nam',
     author_email='contact@kc-ml2.com',
     install_requires=[],
-    python_requires='>=3.6'
+    python_requires='>=3.7'
 )
