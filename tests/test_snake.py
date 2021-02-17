@@ -28,14 +28,14 @@ custom_rew = {
 }
 
 def test():
-    env = gym.make('Snake-v1', height=10, width=10, num_fruits=4,
+    env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
                    num_snakes=num_snake, reward_dict=custom_rew)
     print(env.num_fruits)
     obs = env.reset()
     dones = [False] * num_snake
-    for _ in range(30):
+    for _ in range(100):
         if not all(dones):
-            env.render()
+            env.render('gif')
             ac = [env.action_space.sample() for _ in range(num_snake)]
             obs, rews, dones, _ = env.step(ac)
             print(rews)

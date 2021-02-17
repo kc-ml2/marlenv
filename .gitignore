@@ -110,6 +110,7 @@ logs/
 saved_models
 .DS_Store
 result.gif
+tmp/
 
 # pickle files and pt files (for now)
 *.pkl

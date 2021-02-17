@@ -11,6 +11,19 @@ class Cell(Enum):
     TAIL = 5
 
 
+_color_wheel = [(104, 255, 0), (255, 191, 0), (255, 0, 92), (0, 111, 255)]
+
+
+CellColors = {
+    'EMPTY': [(0, 0, 0)],
+    'WALL': [(32, 32, 32)],
+    'FRUIT': [(223, 7, 22)],
+    'HEAD': _color_wheel,
+    'BODY':_color_wheel,
+    'TAIL': _color_wheel
+}
+
+
 class Direction(Enum):
     UP = (-1, 0)
     RIGHT = (0, 1)

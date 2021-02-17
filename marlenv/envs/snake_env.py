@@ -1,14 +1,17 @@
 from collections import defaultdict
 from typing import List, Tuple
 
+import os
 import gym
 import math
 import numpy as np
+import datetime
 from gym.utils import seeding
 
 from marlenv.core.grid_util import (
-    random_empty_coords, random_empty_coord, draw, make_grid, dfs_sweep_empty)
-from marlenv.core.snake import Direction, Snake, Cell
+    random_empty_coords, random_empty_coord, draw, make_grid, dfs_sweep_empty,
+    image_from_grid)
+from marlenv.core.snake import Direction, Snake, Cell, CellColors
 
 
 class SnakeEnv(gym.Env):
@@ -68,10 +71,10 @@ class SnakeEnv(gym.Env):
         self.vision_range = vision_range
 
         low = 0
-        high = 255
+        high = 1
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
         self.observation_space = gym.spaces.Box(
-            low, high, shape=self.grid_shape, dtype=np.uint8)
+            low, high, shape=(*self.grid_shape, 8), dtype=np.uint8)
 
     def reset(self):
         self.grid = make_grid(*self.grid_shape,
@@ -89,28 +92,39 @@ class SnakeEnv(gym.Env):
         xs, ys = self._generate_fruits(self.num_fruits)
         self.grid[xs, ys] = Cell.FRUIT.value
         self.alive_snakes = self.num_snakes
+        self.frame_buffer = []
 
     def seed(self, seed=42):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def render(self, mode='human'):
-        # just for debugging
-        SYM2CHR = {
-            Cell.EMPTY.value: '.',
-            Cell.WALL.value: '#',
-            Cell.FRUIT.value: 'o',
-            Cell.BODY.value: 'b',
-            Cell.HEAD.value: 'H',
-            Cell.TAIL.value: 't'
-        }
+    def render(self, mode='ascii'):
+        if mode == 'ascii':
+            # Just for debugging
+            SYM2CHR = {
+                Cell.EMPTY.value: '.',
+                Cell.WALL.value: '#',
+                Cell.FRUIT.value: 'o',
+                Cell.BODY.value: 'b',
+                Cell.HEAD.value: 'H',
+                Cell.TAIL.value: 't'
+            }
 
-        CHR2SYM = {v: k for k, v in SYM2CHR.items()}
+            CHR2SYM = {v: k for k, v in SYM2CHR.items()}
 
-        data = np.vectorize(SYM2CHR.get)(self.grid % 10)
-        data = [''.join(i) for i in data]
-        data = '\n'.join(data)
-        print(data)
+            data = np.vectorize(SYM2CHR.get)(self.grid % 10)
+            data = [''.join(i) for i in data]
+            data = '\n'.join(data)
+            print(data)
+        elif mode == 'gif':
+            # Save game play as gif
+            # Create a game scene from the grid 
+            # Append to buffer
+            game_frame = image_from_grid(self.grid, Cell, CellColors)
+            self.frame_buffer.append(game_frame)
+        elif mode == 'human':
+            # Run pygame
+            pass
 
     def close(self):
         pass
@@ -180,6 +194,16 @@ class SnakeEnv(gym.Env):
             dones.append(not snake.alive)
 
         obs = self._encode(self.grid, vision_range=self.vision_range)
+
+        if all(dones) and len(self.frame_buffer) > 1:
+            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            curr_dir = os.getcwd()
+            save_dir = os.path.join(curr_dir, 'tmp')
+            image_dir = os.path.join(save_dir, '{}.gif'.format(now))
+            os.makedirs(save_dir, exist_ok=True)
+            print('Saving image to {}'.format(image_dir))
+            self.frame_buffer[0].save(image_dir, save_all=True,
+                                      append_images=self.frame_buffer[1:])
 
         return obs, rews, dones, None
 
@@ -315,10 +339,5 @@ class SnakeEnv(gym.Env):
 
 
 # TODO:
-# encoding ->
-# reward engineering -> wrapper
-# custom reward structure
 # fruits -> cell list
-# coord vs pos(position) vs coord(coordinate)
 # pygame
-# obs -> cell states

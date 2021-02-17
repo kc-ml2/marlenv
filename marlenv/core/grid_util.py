@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 import copy
+from PIL import Image
 
 SHIFTS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
@@ -151,3 +152,19 @@ def draw(grid, coords: List[tuple], value: int):
     grid[xs, ys] = value
 
     return True
+
+
+def image_from_grid(grid, enum, color_dict, max_size=300):
+    rgb_array = np.zeros((*grid.shape, 3), dtype=np.uint8)
+    bigger = max(list(grid.shape))
+    scale = max(max_size // bigger, 1)
+    for r in range(grid.shape[0]):
+        for c in range(grid.shape[1]):
+            cell_value = grid[r, c] % 10
+            cell_id = grid[r, c] // 10
+            color_list = color_dict[enum(cell_value).name]
+            rgb_array[r, c] = np.array(color_list[cell_id % len(color_list)])
+    rgb_array = np.repeat(np.repeat(rgb_array, scale, axis=0), scale, axis=1)
+    image = Image.fromarray(rgb_array, 'RGB')
+
+    return image
