@@ -7,6 +7,8 @@ setup(
     url='https://github.com/kc-ml2/marlenv',
     author='Tae Min Ha, Daniel Nam',
     author_email='contact@kc-ml2.com',
-    install_requires=[],
+    install_requires=[
+        'gym'
+    ],
     python_requires='>=3.7'
 )
