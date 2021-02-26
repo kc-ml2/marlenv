@@ -39,3 +39,5 @@ def test():
             ac = [env.action_space.sample() for _ in range(num_snake)]
             obs, rews, dones, _ = env.step(ac)
             print(rews)
+if __name__=='__main__':
+	test()

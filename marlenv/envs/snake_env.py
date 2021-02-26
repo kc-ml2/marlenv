@@ -94,6 +94,10 @@ class SnakeEnv(gym.Env):
         self.alive_snakes = self.num_snakes
         self.frame_buffer = []
 
+        obs = self._encode(self.grid, vision_range=self.vision_range)
+
+        return obs
+
     def seed(self, seed=42):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -118,7 +122,7 @@ class SnakeEnv(gym.Env):
             print(data)
         elif mode == 'gif':
             # Save game play as gif
-            # Create a game scene from the grid 
+            # Create a game scene from the grid
             # Append to buffer
             game_frame = image_from_grid(self.grid, Cell, CellColors)
             self.frame_buffer.append(game_frame)
@@ -335,7 +339,6 @@ class SnakeEnv(gym.Env):
         new_coord = (int(math.cos(angle + self.action_angle_dict[action])),
                      int(math.sin(angle + self.action_angle_dict[action])))
         return Direction(new_coord)
-
 
 
 # TODO:
