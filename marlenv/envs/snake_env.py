@@ -31,8 +31,8 @@ class SnakeEnv(gym.Env):
     default_reward_dict = {
         'fruit': 1.0,
         'kill': 0,
-        'lose': -1.0,
-        'win': 0.,
+        'lose': -5.0,
+        'win': 10.0,
         'time': 0.,
     }
     reward_keys = default_reward_dict.keys()
@@ -73,8 +73,12 @@ class SnakeEnv(gym.Env):
         low = 0
         high = 1
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
+        setattr(self.action_space, 'n',
+                [self.action_space.n] * self.num_snakes)
         self.observation_space = gym.spaces.Box(
             low, high, shape=(*self.grid_shape, 8), dtype=np.uint8)
+        setattr(self.observation_space, 'shape',
+                [self.observation_space.shape] * self.num_snakes)
 
     def reset(self):
         self.grid = make_grid(*self.grid_shape,
@@ -156,7 +160,6 @@ class SnakeEnv(gym.Env):
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
         dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
-        print(dead_idxes)
 
         self.alive_snakes -= len(dead_idxes)
         for idx in dead_idxes:
@@ -165,17 +168,16 @@ class SnakeEnv(gym.Env):
         for idx in fruit_idxes:
             tail_coord = self.snakes[idx].tail_coord
             if tail_coord in next_head_coords.keys():
-                for s in [self.snakes[di]
-                          for di in next_head_coords[tail_coord]]:
-                    s.death = True
-                    s.alive = False
+                for di in next_head_coords[tail_coord]:
+                    self.snakes[di].death = True
+                    self.snakes[di].alive = False
                     self.alive_snakes -= 1
                     self.snakes[idx].kills += 1
             self.snakes[idx].fruit = True
         if self.alive_snakes == 1:
             for snake in self.snakes:
                 if snake.alive:
-                    print('player {} wins!'.format(snake.idx))
+                    # print('player {} wins!'.format(snake.idx))
                     snake.win = True
                     break
 
@@ -255,6 +257,7 @@ class SnakeEnv(gym.Env):
                             start[1]:end[1]+1, :] = cropped_full_obs
                 cropped_encoded_obs.append(cropped_obs)
             encoded_obs = cropped_encoded_obs
+
         return encoded_obs
 
     def _check_collision(self, next_head_coords):
@@ -267,8 +270,8 @@ class SnakeEnv(gym.Env):
             if len(idxes) > 1 or cell_value in (Cell.WALL.value,
                                                 Cell.BODY.value,
                                                 Cell.HEAD.value):
-                if len(idxes) > 1:
-                    print("Death by collision", idxes)
+                # if len(idxes) > 1:
+                #     print("Death by collision", idxes)
                 dead_idxes.extend(idxes)
                 if cell_value in (Cell.BODY.value, Cell.HEAD.value):
                     self.snakes[self.grid[coord] // 10].kills += 1
