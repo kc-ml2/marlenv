@@ -15,12 +15,12 @@ _color_wheel = [(104, 255, 0), (255, 191, 0), (255, 0, 92), (0, 111, 255)]
 
 
 CellColors = {
-    'EMPTY': [(0, 0, 0)],
-    'WALL': [(32, 32, 32)],
-    'FRUIT': [(223, 7, 22)],
-    'HEAD': _color_wheel,
-    'BODY':_color_wheel,
-    'TAIL': _color_wheel
+    Cell.EMPTY.value: [(0, 0, 0)],
+    Cell.WALL.value: [(32, 32, 32)],
+    Cell.FRUIT.value: [(223, 7, 22)],
+    Cell.HEAD.value: _color_wheel,
+    Cell.BODY.value: _color_wheel,
+    Cell.TAIL.value: _color_wheel
 }
 
 

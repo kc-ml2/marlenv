@@ -10,7 +10,7 @@ from gym.utils import seeding
 
 from marlenv.core.grid_util import (
     random_empty_coords, random_empty_coord, draw, make_grid, dfs_sweep_empty,
-    image_from_grid)
+    rgb_from_grid, image_from_grid)
 from marlenv.core.snake import Direction, Snake, Cell, CellColors
 
 
@@ -76,7 +76,7 @@ class SnakeEnv(gym.Env):
         setattr(self.action_space, 'n',
                 [self.action_space.n] * self.num_snakes)
         self.observation_space = gym.spaces.Box(
-            low, high, shape=(*self.grid_shape, 8), dtype=np.uint8)
+            low, high, shape=(*self.grid_shape, 6), dtype=np.uint8)  # 8
         setattr(self.observation_space, 'shape',
                 [self.observation_space.shape] * self.num_snakes)
 
@@ -98,7 +98,9 @@ class SnakeEnv(gym.Env):
         self.alive_snakes = self.num_snakes
         self.frame_buffer = []
 
-        obs = self._encode(self.grid, vision_range=self.vision_range)
+        # obs = self._encode(self.grid, vision_range=self.vision_range)
+        self.obs = [rgb_from_grid(self.grid, Cell, CellColors) for _ in range(2)]
+        obs = [np.concatenate(self.obs, axis=-1) for _ in range(self.num_snakes)]
 
         return obs
 
@@ -199,7 +201,9 @@ class SnakeEnv(gym.Env):
 
             dones.append(not snake.alive)
 
-        obs = self._encode(self.grid, vision_range=self.vision_range)
+        # obs = self._encode(self.grid, vision_range=self.vision_range)
+        self.obs = [self.obs[-1], rgb_from_grid(self.grid, Cell, CellColors)]
+        obs = [np.concatenate(self.obs, axis=-1) for _ in range(self.num_snakes)]
 
         if all(dones) and len(self.frame_buffer) > 1:
             now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
