@@ -1,13 +1,15 @@
 import gym
+import numpy as np
 
 
 class SingleAgent(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         assert env.num_snakes == 1, "Number of player must be one"
-        self.env = env
-        self.observation_space = env._observation_space
-        self.action_space = env._action_space
+        self.action_space = gym.spaces.Discrete(len(self.env.action_dict))
+        self.observation_space = gym.spaces.Box(
+            self.low, self.high,
+            shape=(*self.env.grid_shape, 6), dtype=np.uint8)  # 8
 
     def reset(self, **kwargs):
         wrapped_obs = self.env.reset(**kwargs)

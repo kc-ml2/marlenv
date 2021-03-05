@@ -70,18 +70,15 @@ class SnakeEnv(gym.Env):
         self.snake_length = snake_length
         self.vision_range = vision_range
 
-        low = 0
-        high = 1
-        self._action_space = gym.spaces.Discrete(len(self.action_dict))
+        self.low = 0
+        self.high = 255
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
         setattr(self.action_space, 'n',
-                [self._action_space.n] * self.num_snakes)
-        self._observation_space = gym.spaces.Box(
-            low, high, shape=(*self.grid_shape, 6), dtype=np.uint8)  # 8
+                [self.action_space.n] * self.num_snakes)
         self.observation_space = gym.spaces.Box(
-            low, high, shape=(*self.grid_shape, 6), dtype=np.uint8)  # 8
+            self.low, self.high, shape=(*self.grid_shape, 6), dtype=np.uint8)  # 8
         setattr(self.observation_space, 'shape',
-                [self._observation_space.shape] * self.num_snakes)
+                [self.observation_space.shape] * self.num_snakes)
 
     def reset(self):
         self.grid = make_grid(*self.grid_shape,
