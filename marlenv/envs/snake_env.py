@@ -30,9 +30,9 @@ class SnakeEnv(gym.Env):
 
     default_reward_dict = {
         'fruit': 1.0,
-        'kill': 0,
+        'kill': 0.,
         'lose': -5.0,
-        'win': 10.0,
+        'win': 0.,
         'time': 0.,
     }
     reward_keys = default_reward_dict.keys()
@@ -152,6 +152,9 @@ class SnakeEnv(gym.Env):
         if isinstance(actions, int):
             actions = [actions]
         assert len(actions) == self.num_snakes
+        for i, ac in enumerate(actions):
+            if isinstance(ac, np.ndarray):
+                actions[i] = ac.item()
         # preprocess
         next_head_coords = defaultdict(list)
         alive_snakes = []
@@ -176,7 +179,7 @@ class SnakeEnv(gym.Env):
                     self.alive_snakes -= 1
                     self.snakes[idx].kills += 1
             self.snakes[idx].fruit = True
-        if self.alive_snakes == 1:
+        if self.alive_snakes == 1 and self.num_snakes > 1:
             for snake in self.snakes:
                 if snake.alive:
                     # print('player {} wins!'.format(snake.idx))
