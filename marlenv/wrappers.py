@@ -16,7 +16,7 @@ class SingleAgent(gym.Wrapper):
         return wrapped_obs[0]
 
     def step(self, action, **kwargs):
-        obs, rews, dones, infos = self.env.step(action[0], **kwargs)
+        obs, rews, dones, infos = self.env.step([action], **kwargs)
         return obs[0], rews[0], dones[0], {}
 
 # import random
