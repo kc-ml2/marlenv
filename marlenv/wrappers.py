@@ -5,6 +5,9 @@ class SingleAgent(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         assert env.num_snakes == 1, "Number of player must be one"
+        self.env = env
+        self.env.observation_space = env.observation_space[0]
+        self.env.action_space = env.action_space[0]
 
     def reset(self, **kwargs):
         wrapped_obs = self.env.reset(**kwargs)
