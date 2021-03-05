@@ -1,3 +1,19 @@
+import gym
+
+
+class SingleAgent(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        assert env.num_snakes == 1, "Number of player must be one"
+
+    def reset(self, **kwargs):
+        wrapped_obs = self.env.reset(**kwargs)
+        return wrapped_obs[0]
+
+    def step(self, action, **kwargs):
+        obs, rews, dones, infos = self.env.step(action[0], **kwargs)
+        return obs[0], rews[0], dones[0], {}
+
 # import random
 # import numpy as np
 # import gym
