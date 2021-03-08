@@ -42,30 +42,8 @@ class Direction(Enum):
         dx, dy = self.value
         return other[0] - dx, other[1] - dy
 
-    # def __add__(self, other):
-    #     dx, dy = self.value
-    #     return other[0] + dx, other[1] + dy
-
-
-# class Segment:
-#     def __init__(self, coord, direction):
-#         self.coord = coord
-#         self.direction = direction
 
 class Snake:
-    # def __init__(self, idx, head_coord, direction: Direction = Direction.RIGHT):
-    #     self.idx: int = idx
-    #     self.head_coord: tuple = head_coord
-    #     # left coord of head for now
-    #     self.tail_coord: tuple = head_coord - direction
-    #     self.direction: Direction = direction
-    #     self.directions = deque([direction])
-
-    #     self.alive = True
-    #     self.fruit = False
-    #     self.death = False
-    #     self.reward = 0.
-
     def __init__(self, idx, coords):
         assert len(coords) > 1
         self.idx: int = idx

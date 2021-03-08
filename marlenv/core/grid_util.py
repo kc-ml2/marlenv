@@ -4,7 +4,11 @@ import numpy as np
 import copy
 from PIL import Image
 
-SHIFTS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+DOWN = (0, 1)
+RIGHT = (1, 0,)
+UP = (0, -1)
+LEFT = (-1, 0)
+SHIFTS = [DOWN, RIGHT, UP, LEFT]
 
 
 def make_grid(height, width, empty_value=0, wall_value=1) -> np.ndarray:
