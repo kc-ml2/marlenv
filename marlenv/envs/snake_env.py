@@ -2,10 +2,11 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import os
-import gym
 import math
-import numpy as np
 import datetime
+
+import numpy as np
+import gym
 from gym.utils import seeding
 
 from marlenv.core.grid_util import (
@@ -219,7 +220,8 @@ class SnakeEnv(gym.Env):
             os.makedirs(save_dir, exist_ok=True)
         print('Saving image to {}'.format(image_dir))
         self.frame_buffer[0].save(image_dir, save_all=True,
-                                  append_images=self.frame_buffer[1:])
+                                  append_images=self.frame_buffer[1:],
+                                  format='GIF')
 
     def _encode(self, obs, vision_range=None):
         # Encode the observation. obs is self.grid
