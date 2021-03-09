@@ -27,6 +27,7 @@ custom_rew = {
     'time': 0.1,
 }
 
+
 def test():
     env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
                    num_snakes=num_snake, reward_dict=custom_rew)
@@ -39,5 +40,7 @@ def test():
             ac = [env.action_space.sample() for _ in range(num_snake)]
             obs, rews, dones, _ = env.step(ac)
             print(rews)
-if __name__=='__main__':
-	test()
+
+
+if __name__ == '__main__':
+    test()
