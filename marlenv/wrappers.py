@@ -7,9 +7,15 @@ class SingleAgent(gym.Wrapper):
         super().__init__(env)
         assert env.num_snakes == 1, "Number of player must be one"
         self.action_space = gym.spaces.Discrete(len(self.env.action_dict))
-        self.observation_space = gym.spaces.Box(
-            self.low, self.high,
-            shape=(*self.env.grid_shape, 6), dtype=np.uint8)  # 8
+        if self.vision_range:
+            h = w = self.vision_range * 2 + 1
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(h, w,  self.obs_ch), dtype=np.uint8)  # 8
+        else:
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(*self.grid_shape, self.obs_ch), dtype=np.uint8)  # 8
 
     def reset(self, **kwargs):
         wrapped_obs = self.env.reset(**kwargs)
@@ -18,6 +24,7 @@ class SingleAgent(gym.Wrapper):
     def step(self, action, **kwargs):
         obs, rews, dones, infos = self.env.step([action], **kwargs)
         return obs[0], rews[0], dones[0], {}
+
 
 # import random
 # import numpy as np

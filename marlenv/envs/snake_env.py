@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import List, Tuple
 
 import os
@@ -20,6 +20,8 @@ class SnakeEnv(gym.Env):
         'noop': 0,
         'left': 1,
         'right': 2,
+        'down': 3,
+        'up': 4
     }
     action_keys = default_action_dict.keys()
 
@@ -32,7 +34,7 @@ class SnakeEnv(gym.Env):
     default_reward_dict = {
         'fruit': 1.0,
         'kill': 0.,
-        'lose': -5.0,
+        'lose': 0.0,
         'win': 0.,
         'time': 0.,
     }
@@ -72,19 +74,32 @@ class SnakeEnv(gym.Env):
         self.vision_range = vision_range
 
         self.low = 0
+        self.image_obs = False
         self.high = 255
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
         setattr(self.action_space, 'n',
                 [self.action_space.n] * self.num_snakes)
-        self.observation_space = gym.spaces.Box(
-            self.low, self.high, shape=(*self.grid_shape, 6), dtype=np.uint8)  # 8
+
+        self.frame_stack = 3
+        self.obs_ch = self.frame_stack * 3 if self.image_obs else 8
+        if self.vision_range:
+            h = w = self.vision_range * 2 + 1
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(h, w,  self.obs_ch), dtype=np.uint8)  # 8
+        else:
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(*self.grid_shape, self.obs_ch), dtype=np.uint8)  # 8
         setattr(self.observation_space, 'shape',
                 [self.observation_space.shape] * self.num_snakes)
 
     def reset(self):
+        # Create the grid base
         self.grid = make_grid(*self.grid_shape,
                               empty_value=Cell.EMPTY.value,
                               wall_value=Cell.WALL.value)
+        # Generate and add snake to the grid
         self.snakes = self._generate_snakes()
         for snake in self.snakes:
             coords = snake.coords
@@ -94,14 +109,21 @@ class SnakeEnv(gym.Env):
             self.grid[snake.head_coord] = Cell.HEAD.value + snake_id
             self.grid[snake.tail_coord] = Cell.TAIL.value + snake_id
 
+        # Generate fruit and add to the grid
         xs, ys = self._generate_fruits(self.num_fruits)
         self.grid[xs, ys] = Cell.FRUIT.value
+
         self.alive_snakes = self.num_snakes
         self.frame_buffer = []
 
-        # obs = self._encode(self.grid, vision_range=self.vision_range)
-        self.obs = [rgb_from_grid(self.grid, Cell, CellColors) for _ in range(2)]
-        obs = [np.concatenate(self.obs, axis=-1) for _ in range(self.num_snakes)]
+        if self.image_obs:
+            self.obs = deque(maxlen=self.frame_stack)
+            for _ in range(self.frame_stack):
+                self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
+            obs = [np.concatenate(list(self.obs), axis=-1)
+                for _ in range(self.num_snakes)]
+        else:
+            obs = self._encode(self.grid, vision_range=self.vision_range)
 
         return obs
 
@@ -161,11 +183,11 @@ class SnakeEnv(gym.Env):
         alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
-                snake.direction = self._next_direction(snake.direction, action)
+                snake.direction = self._next_direction_global(snake.direction, action)
                 new_head_coord = snake.head_coord + snake.direction
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
-        dead_idxes, fruit_idxes = self._check_collision(next_head_coords)
+        dead_idxes, fruit_idxes, fruit_taken = self._check_collision(next_head_coords)
 
         self.alive_snakes -= len(dead_idxes)
         for idx in dead_idxes:
@@ -189,7 +211,7 @@ class SnakeEnv(gym.Env):
 
         rews = []
         dones = []
-        # postprocess
+        # Update snake rews, stats, etc., and update the grid accordingly
         for snake in self.snakes:
             if not snake.death and not snake.alive:
                 snake.reward = 0.
@@ -202,12 +224,19 @@ class SnakeEnv(gym.Env):
                 snake.reward += self.reward_dict['win'] * snake.win
                 rews.append(snake.reward)
                 self._update_grid(snake)
-
             dones.append(not snake.alive)
 
-        # obs = self._encode(self.grid, vision_range=self.vision_range)
-        self.obs = [self.obs[-1], rgb_from_grid(self.grid, Cell, CellColors)]
-        obs = [np.concatenate(self.obs, axis=-1) for _ in range(self.num_snakes)]
+        # Generate fruit and add to the grid
+        xs, ys = self._generate_fruits(fruit_taken)
+        if xs is not None:
+            self.grid[xs, ys] = Cell.FRUIT.value
+
+        if self.image_obs:
+            self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
+            obs = [np.concatenate(list(self.obs), axis=-1)
+                for _ in range(self.num_snakes)]
+        else:
+            obs = self._encode(self.grid, vision_range=self.vision_range)
 
         return obs, rews, dones, None
 
@@ -274,6 +303,7 @@ class SnakeEnv(gym.Env):
         # Check for head, body, wall, fruit collision and assign new status
         dead_idxes = []
         fruit_idxes = []
+        fruit_taken = 0
         for coord, idxes in next_head_coords.items():
             cell_value = self.grid[coord] % 10
             # Head collision or clear death
@@ -283,13 +313,16 @@ class SnakeEnv(gym.Env):
                 # if len(idxes) > 1:
                 #     print("Death by collision", idxes)
                 dead_idxes.extend(idxes)
+                if cell_value == Cell.FRUIT.value:
+                    fruit_taken += 1
                 if cell_value in (Cell.BODY.value, Cell.HEAD.value):
                     self.snakes[self.grid[coord] // 10].kills += 1
             elif len(idxes) == 1 and cell_value == Cell.FRUIT.value:
                 fruit_idxes.extend(idxes)
+                fruit_taken += 1
         dead_idxes = list(set(dead_idxes))
-        fruit_idxes = fruit_idxes
-        return dead_idxes, fruit_idxes
+
+        return dead_idxes, fruit_idxes, fruit_taken
 
     def _update_grid(self, snake):
         # Update the grid according to a snake's status
@@ -337,7 +370,9 @@ class SnakeEnv(gym.Env):
         return snakes
 
     def _generate_fruits(self, num_fruits=1):
-        xs, ys = random_empty_coords(self.grid, num_coords=num_fruits)
+        xs = ys = None
+        if num_fruits:
+            xs, ys = random_empty_coords(self.grid, num_coords=num_fruits)
 
         return xs, ys
 
@@ -352,6 +387,30 @@ class SnakeEnv(gym.Env):
         new_coord = (int(math.cos(angle + self.action_angle_dict[action])),
                      int(math.sin(angle + self.action_angle_dict[action])))
         return Direction(new_coord)
+
+    def _next_direction_global(self, direction, action):
+        """
+        0 == noop
+        1 == left
+        2 == right
+        3 == down
+        4 == up
+        Change direction to given angle
+        """
+        new_direction = direction
+        if direction.value[0] == 0:
+            # snake is moving up or down
+            if action == 3:
+                new_direction = Direction.DOWN
+            elif action == 4:
+                new_direction = Direction.UP
+        elif direction.value[1] == 0:
+            # snake is moving lfet or right
+            if action == 1:
+                new_direction = Direction.LEFT
+            elif action == 2:
+                new_direction = Direction.RIGHT
+        return new_direction
 
 
 # TODO:

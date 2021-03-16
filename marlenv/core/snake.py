@@ -35,12 +35,12 @@ class Direction(Enum):
     """
 
     def __radd__(self, other):
-        dx, dy = self.value
-        return other[0] + dx, other[1] + dy
+        dr, dc = self.value
+        return other[0] + dr, other[1] + dc
 
     def __rsub__(self, other):
-        dx, dy = self.value
-        return other[0] - dx, other[1] - dy
+        dr, dc = self.value
+        return other[0] - dr, other[1] - dc
 
 
 class Snake:

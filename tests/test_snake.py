@@ -16,7 +16,7 @@ from marlenv.envs.snake_env import SnakeEnv
 #
 # def test_render():
 #     assert False
-num_snake = 8
+num_snake = 1
 # rewards = np.zeros(num_snake)
 
 custom_rew = {
@@ -29,7 +29,9 @@ custom_rew = {
 
 
 def test():
-    env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
+    # env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
+    #                num_snakes=num_snake, reward_dict=custom_rew)
+    env = gym.make('Snake-v1', num_fruits=4,
                    num_snakes=num_snake, reward_dict=custom_rew)
     print(env.num_fruits)
     obs = env.reset()
