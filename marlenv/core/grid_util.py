@@ -27,8 +27,7 @@ def make_grid_from_txt(map_path: str, mapper: dict) -> np.ndarray:
     ls = []
     for line in lines:
         # split string into list of char
-        l = list(line)
-        ls.append([mapper[c] for c in l])
+        ls.append([mapper[c] for c in list(line)])
     grid = np.asarray(ls)
 
     return grid
@@ -91,7 +90,8 @@ def _dfs_helper(grid: np.ndarray, node: tuple, history: List[tuple], k: int):
             # Get shifted rows and colums
             rs, cs = node[0] + shift[0], node[1] + shift[1]
             candidate = (rs, cs)
-            if _inbound(candidate, grid) and not candidate in history and grid[candidate]:
+            if (_inbound(candidate, grid)
+               and candidate not in history and grid[candidate]):
                 if not _head_blocked(grid, history, candidate):
                     answers.extend(
                         _dfs_helper(grid, candidate, copy.deepcopy(history), k)
@@ -104,7 +104,8 @@ def _head_blocked(mask: np.ndarray, history: List[tuple], extra_node: tuple):
     first_node = history[0]
     for shift in SHIFTS:
         node = first_node[0] + shift[0], first_node[1] + shift[1]
-        if mask[node] == 0 or node in history or node == extra_node or not _inbound(node, mask):
+        if (mask[node] == 0 or node in history or node == extra_node
+           or not _inbound(node, mask)):
             check_status += 1
     return check_status == len(SHIFTS)
 
@@ -124,6 +125,8 @@ def random_empty_coord(grid: np.ndarray):
 
 def random_empty_coords(grid, num_coords: int):
     xs, ys = np.where(grid == 0)
+    if len(xs) == 0:
+        return None, None
     idxes = np.random.randint(0, len(xs) - 1, size=num_coords)
     # coords = np.stack(xs[idxes], ys[idxes]).T
 
@@ -160,8 +163,6 @@ def draw(grid, coords: List[tuple], value: int):
 
 def rgb_from_grid(grid, enum, color_dict):
     rgb_array = np.zeros((*grid.shape, 3), dtype=np.uint8)
-    value_grid = grid % 10
-    id_grid = grid // 10
     for r in range(grid.shape[0]):
         for c in range(grid.shape[1]):
             cell_value = grid[r, c] % 10
@@ -178,7 +179,7 @@ def image_from_grid(grid, enum, color_dict, max_size=300):
     bigger = max(list(grid.shape))
     scale = max(max_size // bigger, 1)
     rgb_array = rgb_from_grid(grid, enum, color_dict)
-    rgb_arrgy = np.repeat(np.repeat(rgb_array, scale, axis=0), scale, axis=1)
+    rgb_array = np.repeat(np.repeat(rgb_array, scale, axis=0), scale, axis=1)
     image = Image.fromarray(rgb_array, 'RGB')
 
     return image
