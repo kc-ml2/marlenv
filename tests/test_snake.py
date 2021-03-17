@@ -1,48 +1,59 @@
+import os
+from PIL import Image
+
 import gym
-import numpy as np
+import pytest
 
 from marlenv.envs.snake_env import SnakeEnv
 
-# test_env = SnakeEnv()
-#
-#
-# def test_step():
-#     test_env = SnakeEnv()
-#
-#
-# def test_reset():
-#     assert False
-#
-#
-# def test_render():
-#     assert False
-num_snake = 1
-# rewards = np.zeros(num_snake)
 
-custom_rew = {
-    'fruit': 1.0,
-    'kill': 2.0,
-    'lose': 3.0,
-    'win': 4.0,
-    'time': 0.1,
-}
+@pytest.fixture
+def snake_env():
+    custom_rew = {
+        'fruit': 1.0,
+        'kill': 2.0,
+        'lose': 3.0,
+        'win': 4.0,
+        'time': 0.1,
+    }
+    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew)
+
+    return env
 
 
-def test():
-    # env = gym.make('Snake-v1', height=20, width=20, num_fruits=4,
-    #                num_snakes=num_snake, reward_dict=custom_rew)
-    env = gym.make('Snake-v1', num_fruits=4,
-                   num_snakes=num_snake, reward_dict=custom_rew)
-    print(env.num_fruits)
+def rollout(env, n=100, render_mode=None):
+    num_snakes = env.num_snakes
     obs = env.reset()
-    dones = [False] * num_snake
-    for _ in range(100):
+    dones = [False] * num_snakes
+
+    for _ in range(n):
         if not all(dones):
-            env.render('gif')
-            ac = [env.action_space.sample() for _ in range(num_snake)]
+            if render_mode:
+                env.render(render_mode)
+            ac = [env.action_space.sample() for _ in range(num_snakes)]
             obs, rews, dones, _ = env.step(ac)
-            print(rews)
 
 
-if __name__ == '__main__':
-    test()
+def test_rollout(snake_env):
+    n_rollouts = 100
+    rollout(snake_env, n=n_rollouts)
+
+
+@pytest.fixture
+def processed_snake_env(snake_env):
+    n_rollouts = 100
+    rollout(snake_env, n=n_rollouts, render_mode='gif')
+
+    return snake_env
+
+
+def test_save_gif(processed_snake_env):
+    env = processed_snake_env
+    # save_dir = './tmp'
+    image_dir = env.save_gif()
+    assert os.path.exists(image_dir)
+
+    gif = Image.open(image_dir)
+    gif.seek(1)
+
+    os.remove(image_dir)

@@ -242,15 +242,17 @@ class SnakeEnv(gym.Env):
 
     def save_gif(self, image_dir=None):
         if image_dir is None:
-            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             curr_dir = os.getcwd()
             save_dir = os.path.join(curr_dir, 'tmp')
+            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             image_dir = os.path.join(save_dir, '{}.gif'.format(now))
             os.makedirs(save_dir, exist_ok=True)
         print('Saving image to {}'.format(image_dir))
         self.frame_buffer[0].save(image_dir, save_all=True,
                                   append_images=self.frame_buffer[1:],
                                   format='GIF')
+
+        return image_dir
 
     def _encode(self, obs, vision_range=None):
         # Encode the observation. obs is self.grid
