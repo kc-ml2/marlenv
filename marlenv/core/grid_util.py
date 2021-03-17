@@ -127,7 +127,7 @@ def random_empty_coords(grid, num_coords: int):
     xs, ys = np.where(grid == 0)
     if len(xs) == 0:
         return None, None
-    idxes = np.random.randint(0, len(xs) - 1, size=num_coords)
+    idxes = np.random.randint(0, len(xs), size=num_coords)
     # coords = np.stack(xs[idxes], ys[idxes]).T
 
     return xs[idxes], ys[idxes]
