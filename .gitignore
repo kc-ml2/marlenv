@@ -109,9 +109,12 @@ data/
 logs/
 saved_models
 .DS_Store
-result.gif
+*.gif
+tmp/
 
 # pickle files and pt files (for now)
 *.pkl
 *.pt
 *.pth
+
+.idea
