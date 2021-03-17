@@ -1,4 +1,7 @@
+import io
 import os
+import sys
+
 from PIL import Image
 
 import gym
@@ -47,9 +50,8 @@ def processed_snake_env(snake_env):
     return snake_env
 
 
-def test_save_gif(processed_snake_env):
+def test_save_gif_default(processed_snake_env):
     env = processed_snake_env
-    # save_dir = './tmp'
     image_dir = env.save_gif()
     assert os.path.exists(image_dir)
 
@@ -57,3 +59,14 @@ def test_save_gif(processed_snake_env):
     gif.seek(1)
 
     os.remove(image_dir)
+
+
+def test_save_gif_fileobj(processed_snake_env):
+    env = processed_snake_env
+
+    with io.BytesIO() as fileobj:
+        output = env.save_gif(fileobj)
+
+    assert sys.getsizeof(output) > 0
+
+
