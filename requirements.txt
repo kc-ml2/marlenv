@@ -2,5 +2,5 @@ gym==0.14.0
 numpy==1.18.1
 pyglet==1.3.2
 pygame==1.9.6
-Pillow==6.2.0
+Pillow==8.1.1
 imageio
