@@ -161,6 +161,9 @@ class SnakeEnv(gym.Env):
             # Append to buffer
             game_frame = image_from_grid(self.grid, Cell, CellColors)
             self.frame_buffer.append(game_frame)
+        elif mode == 'rgb_array':
+            rgb_array = rgb_from_grid(self.grid, Cell, CellColors)
+            return rgb_array
         elif mode == 'human':
             # Run pygame
             pass
