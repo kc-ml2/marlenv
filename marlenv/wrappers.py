@@ -26,6 +26,33 @@ class SingleAgent(gym.Wrapper):
         return obs[0], rews[0], dones[0], {}
 
 
+class SingleMultiAgent(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.action_space = gym.spaces.Discrete(len(self.env.action_dict))
+        if self.vision_range:
+            h = w = self.vision_range * 2 + 1
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(h, w,  self.obs_ch), dtype=np.uint8)  # 8
+        else:
+            self.observation_space = gym.spaces.Box(
+                self.low, self.high,
+                shape=(*self.grid_shape, self.obs_ch), dtype=np.uint8)  # 8
+
+    def reset(self, **kwargs):
+        wrapped_obs = self.env.reset(**kwargs)
+        return np.concatenate(wrapped_obs, axis=-1)
+
+    def step(self, action, **kwargs):
+        action = [ac for ac in action]
+        obs, rews, dones, infos = self.env.step(action, **kwargs)
+        obs = np.concatenate(obs, axis=-1)
+        rews = np.concatenate(rews, axis=-1)
+        dones = np.concatenate(dones, axis=-1)
+        return obs, rews, dones, {}
+
+
 # import random
 # import numpy as np
 # import gym

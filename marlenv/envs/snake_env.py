@@ -47,6 +47,7 @@ class SnakeEnv(gym.Env):
             num_snakes=4,
             snake_length=3,
             vision_range=None,
+            frame_stack = 1,
             *args,
             **kwargs
     ):
@@ -80,8 +81,8 @@ class SnakeEnv(gym.Env):
         setattr(self.action_space, 'n',
                 [self.action_space.n] * self.num_snakes)
 
-        self.frame_stack = 3
-        self.obs_ch = self.frame_stack * 3 if self.image_obs else 8
+        self.frame_stack = frame_stack
+        self.obs_ch = self.frame_stack * 3 if self.image_obs else self.frame_stack * 8
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
@@ -121,9 +122,14 @@ class SnakeEnv(gym.Env):
             for _ in range(self.frame_stack):
                 self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
             obs = [np.concatenate(list(self.obs), axis=-1)
-                for _ in range(self.num_snakes)]
+                   for _ in range(self.num_snakes)]
         else:
-            obs = self._encode(self.grid, vision_range=self.vision_range)
+            self.obs = deque(maxlen=self.frame_stack)
+            _obs = self._encode(self.grid, vision_range=self.vision_range)
+            for _ in range(self.frame_stack):
+                self.obs.append(_obs)
+            obs = list(zip(*list(self.obs)))
+            obs = [np.concatenate(o, axis=-1) for o in obs]
 
         return obs
 
@@ -234,9 +240,13 @@ class SnakeEnv(gym.Env):
         if self.image_obs:
             self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
             obs = [np.concatenate(list(self.obs), axis=-1)
-                for _ in range(self.num_snakes)]
+                   for _ in range(self.num_snakes)]
         else:
-            obs = self._encode(self.grid, vision_range=self.vision_range)
+            self.obs = deque(maxlen=self.frame_stack)
+            _obs = self._encode(self.grid, vision_range=self.vision_range)
+            self.obs.append(_obs)
+            obs = list(zip(*list(self.obs)))
+            obs = [np.concatenate(o, axis=-1) for o in obs]
 
         return obs, rews, dones, None
 
