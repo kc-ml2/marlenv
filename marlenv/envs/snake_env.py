@@ -245,7 +245,6 @@ class SnakeEnv(gym.Env):
             obs = [np.concatenate(list(self.obs), axis=-1)
                    for _ in range(self.num_snakes)]
         else:
-            self.obs = deque(maxlen=self.frame_stack)
             _obs = self._encode(self.grid, vision_range=self.vision_range)
             self.obs.append(_obs)
             obs = list(zip(*list(self.obs)))
