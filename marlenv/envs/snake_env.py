@@ -131,6 +131,8 @@ class SnakeEnv(gym.Env):
             obs = list(zip(*list(self.obs)))
             obs = [np.concatenate(o, axis=-1) for o in obs]
 
+        self.epi_scores = [0 for _ in range(self.num_snakes)]
+
         return obs
 
     def seed(self, seed=42):
@@ -250,7 +252,21 @@ class SnakeEnv(gym.Env):
             obs = list(zip(*list(self.obs)))
             obs = [np.concatenate(o, axis=-1) for o in obs]
 
-        return obs, rews, dones, None
+        for s_idx, rew in enumerate(rews):
+            self.epi_scores[s_idx] += rew
+        info = {'episode_score': self.epi_scores}
+        if all(dones):
+            sorted_scores = np.unique(np.sort(self.epi_scores))
+            ranks = np.array([0 for _ in range(self.num_snakes)])
+            base_rank = 1
+            for score in sorted_scores:
+                idx = np.where(np.array(self.epi_scores) == score)[0]
+                ranks[idx] = base_rank
+                base_rank += len(idx)
+            info['rank'] = list(ranks)
+
+            self.epi_scores = [0 for _ in range(self.num_snakes)]
+        return obs, rews, dones, info
 
     def save_gif(self, fp=None):
         if fp is None:
