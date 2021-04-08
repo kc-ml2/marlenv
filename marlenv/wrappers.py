@@ -203,6 +203,8 @@ def make_snake(n_env=1, num_snakes=4, **kwargs):
 
     dummyenv = _make()
     observation_shape = dummyenv.observation_space.shape
+    if num_snakes > 1:
+        observation_shape = observation_shape[1:]
     action_shape = (dummyenv.action_space.n,)
     high = dummyenv.observation_space.high
     low = dummyenv.observation_space.low
@@ -210,6 +212,8 @@ def make_snake(n_env=1, num_snakes=4, **kwargs):
 
     if n_env > 1:
         env = vec_wrapper([_make for _ in range(n_env)])
+    else:
+        env = _make()
 
     properties = EasyDict({
         'high': high,

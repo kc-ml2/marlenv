@@ -220,7 +220,8 @@ class SnakeEnv(gym.Env):
             if not snake.death and not snake.alive:
                 snake.reward = 0.
                 rews.append(snake.reward)
-                fruits.append(0.)
+                fruits.append(0)
+                kills.append(0)
             else:
                 snake.reward = self.reward_dict['time'] * snake.alive
                 snake.reward += self.reward_dict['fruit'] * snake.fruit
