@@ -208,6 +208,16 @@ def make_snake(n_env=1, num_snakes=4, **kwargs):
     action_shape = (dummyenv.action_space.n,)
     high = dummyenv.observation_space.high
     low = dummyenv.observation_space.low
+
+    if 'Discrete' in str(type(dummyenv.action_space)):
+        action_info = {'action_n': dummyenv.action_space.n}
+        discrete = True
+
+    if 'Box' in str(type(dummyenv.action_space)):
+        action_info = {'action_high': dummyenv.action_space.high,
+                       'action_low': dummyenv.action_space.low}
+        discrete = False
+
     del dummyenv
 
     if n_env > 1:
@@ -220,7 +230,9 @@ def make_snake(n_env=1, num_snakes=4, **kwargs):
         'low': low,
         'n_env': n_env,
         'num_snakes': num_snakes,
-        'reorder': True
+        'reorder': True,
+        'discrete': discrete,
+        'action_info': action_info,
     })
 
     return env, observation_shape, action_shape, properties
