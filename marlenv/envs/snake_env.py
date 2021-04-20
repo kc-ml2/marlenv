@@ -10,7 +10,7 @@ import gym
 from gym.utils import seeding
 
 from marlenv.core.grid_util import (
-    random_empty_coords, random_empty_coord, draw, make_grid, dfs_sweep_empty,
+    random_empty_coords, draw, make_grid, dfs_sweep_empty,
     rgb_from_grid, image_from_grid)
 from marlenv.core.snake import Direction, Snake, Cell, CellColors
 
@@ -40,6 +40,8 @@ class SnakeEnv(gym.Env):
     }
     reward_keys = default_reward_dict.keys()
 
+    max_episode_steps = 1e4
+
     def __init__(
             self,
             height=20,
@@ -47,6 +49,7 @@ class SnakeEnv(gym.Env):
             num_snakes=4,
             snake_length=3,
             vision_range=None,
+            frame_stack=1,
             *args,
             **kwargs
     ):
@@ -63,6 +66,8 @@ class SnakeEnv(gym.Env):
             )
         else:
             self.reward_dict = reward_dict
+        self.max_episode_steps = kwargs.pop('max_episode_steps',
+                                            SnakeEnv.max_episode_steps)
 
         self.num_snakes = num_snakes
         self.num_fruits = kwargs.pop('num_fruits',
@@ -75,13 +80,17 @@ class SnakeEnv(gym.Env):
 
         self.low = 0
         self.image_obs = False
-        self.high = 255
+        if self.image_obs:
+            self.high = 255
+        else:
+            self.high = 1
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
         setattr(self.action_space, 'n',
                 [self.action_space.n] * self.num_snakes)
 
-        self.frame_stack = 3
-        self.obs_ch = self.frame_stack * 3 if self.image_obs else 8
+        self.frame_stack = frame_stack
+        default_ch = 3 if self.image_obs else 8
+        self.obs_ch = default_ch * self.frame_stack
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
@@ -116,14 +125,11 @@ class SnakeEnv(gym.Env):
         self.alive_snakes = self.num_snakes
         self.frame_buffer = []
 
-        if self.image_obs:
-            self.obs = deque(maxlen=self.frame_stack)
-            for _ in range(self.frame_stack):
-                self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
-            obs = [np.concatenate(list(self.obs), axis=-1)
-                for _ in range(self.num_snakes)]
-        else:
-            obs = self._encode(self.grid, vision_range=self.vision_range)
+        obs = self._init_obs()
+
+        # Episodic stats
+        self._reset_epi_stats()
+        self.episode_length = 0
 
         return obs
 
@@ -143,7 +149,7 @@ class SnakeEnv(gym.Env):
                 Cell.TAIL.value: 't'
             }
 
-            CHR2SYM = {v: k for k, v in SYM2CHR.items()}
+            # CHR2SYM = {v: k for k, v in SYM2CHR.items()}
 
             data = np.vectorize(SYM2CHR.get)(self.grid % 10)
             data = [''.join(i) for i in data]
@@ -186,7 +192,8 @@ class SnakeEnv(gym.Env):
         alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
-                snake.direction = self._next_direction_global(snake.direction, action)
+                snake.direction = self._next_direction_global(snake.direction,
+                                                              action)
                 new_head_coord = snake.head_coord + snake.direction
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
@@ -214,11 +221,14 @@ class SnakeEnv(gym.Env):
 
         rews = []
         dones = []
+        fruits, kills = [], []
         # Update snake rews, stats, etc., and update the grid accordingly
         for snake in self.snakes:
             if not snake.death and not snake.alive:
                 snake.reward = 0.
                 rews.append(snake.reward)
+                fruits.append(0)
+                kills.append(0)
             else:
                 snake.reward = self.reward_dict['time'] * snake.alive
                 snake.reward += self.reward_dict['fruit'] * snake.fruit
@@ -226,6 +236,8 @@ class SnakeEnv(gym.Env):
                 snake.reward += self.reward_dict['kill'] * snake.kills
                 snake.reward += self.reward_dict['win'] * snake.win
                 rews.append(snake.reward)
+                fruits.append(float(snake.fruit))
+                kills.append(float(snake.kills))
                 self._update_grid(snake)
             dones.append(not snake.alive)
 
@@ -234,14 +246,40 @@ class SnakeEnv(gym.Env):
         if xs is not None:
             self.grid[xs, ys] = Cell.FRUIT.value
 
-        if self.image_obs:
-            self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
-            obs = [np.concatenate(list(self.obs), axis=-1)
-                for _ in range(self.num_snakes)]
-        else:
-            obs = self._encode(self.grid, vision_range=self.vision_range)
+        obs = self._get_obs()
 
-        return obs, rews, dones, None
+        # for s_idx, rew in enumerate(rews):
+        #     self.epi_scores[s_idx] += rew
+        done_mask = 1. - np.asarray(dones)
+        self.epi_scores = self.epi_scores + done_mask * np.asarray(rews)
+        self.epi_steps = self.epi_steps + done_mask * np.ones(len(dones))
+        self.epi_fruits = self.epi_fruits + done_mask * np.asarray(fruits)
+        self.epi_kills = self.epi_kills + done_mask * np.asarray(kills)
+
+        info = {}
+        self.episode_length += 1
+        if self.episode_length >= self.max_episode_steps:
+            dones = [True] * self.num_snakes
+
+        if all(dones):
+            sorted_scores = np.unique(np.sort(self.epi_scores)[::-1])
+            ranks = np.array([0 for _ in range(self.num_snakes)])
+            base_rank = 1
+            for score in sorted_scores:
+                idx = np.where(np.array(self.epi_scores) == score)[0]
+                ranks[idx] = base_rank
+                base_rank += len(idx)
+            info['rank'] = list(ranks)
+
+            info.update(
+                {'episode_scores': self.epi_scores,
+                 'episode_steps': self.epi_steps,
+                 'episode_fruits': self.epi_fruits,
+                 'episode_kills': self.epi_kills})
+
+            self._reset_epi_stats()
+
+        return obs, rews, dones, info
 
     def save_gif(self, fp=None):
         if fp is None:
@@ -254,8 +292,43 @@ class SnakeEnv(gym.Env):
         self.frame_buffer[0].save(fp, save_all=True,
                                   append_images=self.frame_buffer[1:],
                                   format='GIF')
-
         return fp
+
+    def _reset_epi_stats(self):
+        self.epi_scores = np.zeros(self.num_snakes)
+        self.epi_steps = np.zeros(self.num_snakes)
+        self.epi_fruits = np.zeros(self.num_snakes)
+        self.epi_kills = np.zeros(self.num_snakes)
+
+    def _init_obs(self):
+        if self.image_obs:
+            self.obs = deque(maxlen=self.frame_stack)
+            for _ in range(self.frame_stack):
+                self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
+            obs = [np.concatenate(list(self.obs), axis=-1)
+                   for _ in range(self.num_snakes)]
+        else:
+            self.obs = deque(maxlen=self.frame_stack)
+            _obs = self._encode(self.grid, vision_range=self.vision_range)
+            for _ in range(self.frame_stack):
+                self.obs.append(_obs)
+            obs = list(zip(*list(self.obs)))
+            obs = [np.concatenate(o, axis=-1) for o in obs]
+
+        return obs
+
+    def _get_obs(self):
+        if self.image_obs:
+            self.obs.append(rgb_from_grid(self.grid, Cell, CellColors))
+            obs = [np.concatenate(list(self.obs), axis=-1)
+                   for _ in range(self.num_snakes)]
+        else:
+            _obs = self._encode(self.grid, vision_range=self.vision_range)
+            self.obs.append(_obs)
+            obs = list(zip(*list(self.obs)))
+            obs = [np.concatenate(o, axis=-1) for o in obs]
+
+        return obs
 
     def _encode(self, obs, vision_range=None):
         # Encode the observation. obs is self.grid
@@ -400,7 +473,7 @@ class SnakeEnv(gym.Env):
         2 == right
         3 == down
         4 == up
-        Change direction to given angle
+        Change direction to given global direction
         """
         new_direction = direction
         if direction.value[0] == 0:
@@ -416,8 +489,3 @@ class SnakeEnv(gym.Env):
             elif action == 2:
                 new_direction = Direction.RIGHT
         return new_direction
-
-
-# TODO:
-# fruits -> cell list
-# pygame
