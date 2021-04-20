@@ -40,6 +40,8 @@ class SnakeEnv(gym.Env):
     }
     reward_keys = default_reward_dict.keys()
 
+    max_episode_steps = 1e4
+
     def __init__(
             self,
             height=20,
@@ -47,7 +49,7 @@ class SnakeEnv(gym.Env):
             num_snakes=4,
             snake_length=3,
             vision_range=None,
-            frame_stack = 1,
+            frame_stack=1,
             *args,
             **kwargs
     ):
@@ -64,6 +66,8 @@ class SnakeEnv(gym.Env):
             )
         else:
             self.reward_dict = reward_dict
+        self.max_episode_steps = kwargs.pop('max_episode_steps',
+                                            SnakeEnv.max_episode_steps)
 
         self.num_snakes = num_snakes
         self.num_fruits = kwargs.pop('num_fruits',
@@ -85,7 +89,8 @@ class SnakeEnv(gym.Env):
                 [self.action_space.n] * self.num_snakes)
 
         self.frame_stack = frame_stack
-        self.obs_ch = self.frame_stack * 3 if self.image_obs else self.frame_stack * 8
+        default_ch = 3 if self.image_obs else 8
+        self.obs_ch = default_ch * self.frame_stack
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
@@ -124,6 +129,7 @@ class SnakeEnv(gym.Env):
 
         # Episodic stats
         self._reset_epi_stats()
+        self.episode_length = 0
 
         return obs
 
@@ -143,7 +149,7 @@ class SnakeEnv(gym.Env):
                 Cell.TAIL.value: 't'
             }
 
-            CHR2SYM = {v: k for k, v in SYM2CHR.items()}
+            # CHR2SYM = {v: k for k, v in SYM2CHR.items()}
 
             data = np.vectorize(SYM2CHR.get)(self.grid % 10)
             data = [''.join(i) for i in data]
@@ -186,7 +192,8 @@ class SnakeEnv(gym.Env):
         alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
-                snake.direction = self._next_direction_global(snake.direction, action)
+                snake.direction = self._next_direction_global(snake.direction,
+                                                              action)
                 new_head_coord = snake.head_coord + snake.direction
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
@@ -250,8 +257,12 @@ class SnakeEnv(gym.Env):
         self.epi_kills = self.epi_kills + done_mask * np.asarray(kills)
 
         info = {}
+        self.episode_length += 1
+        if self.episode_length >= self.max_episode_steps:
+            dones = [True] * self.num_snakes
+
         if all(dones):
-            sorted_scores = np.unique(np.sort(self.epi_scores))
+            sorted_scores = np.unique(np.sort(self.epi_scores)[::-1])
             ranks = np.array([0 for _ in range(self.num_snakes)])
             base_rank = 1
             for score in sorted_scores:
@@ -462,7 +473,7 @@ class SnakeEnv(gym.Env):
         2 == right
         3 == down
         4 == up
-        Change direction to given angle
+        Change direction to given global direction
         """
         new_direction = direction
         if direction.value[0] == 0:
