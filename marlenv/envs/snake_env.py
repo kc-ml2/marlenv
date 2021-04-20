@@ -265,7 +265,7 @@ class SnakeEnv(gym.Env):
             sorted_scores = np.unique(np.sort(self.epi_scores)[::-1])
             ranks = np.array([0 for _ in range(self.num_snakes)])
             base_rank = 1
-            for score in sorted_scores:
+            for score in sorted_scores[::-1]:
                 idx = np.where(np.array(self.epi_scores) == score)[0]
                 ranks[idx] = base_rank
                 base_rank += len(idx)
