@@ -4,6 +4,7 @@ from typing import List, Tuple
 import os
 import math
 import datetime
+import warnings
 
 import numpy as np
 import gym
@@ -288,10 +289,16 @@ class SnakeEnv(gym.Env):
             now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             fp = os.path.join(save_dir, '{}.gif'.format(now))
             os.makedirs(save_dir, exist_ok=True)
-        print('Saving image to {}'.format(fp))
-        self.frame_buffer[0].save(fp, save_all=True,
-                                  append_images=self.frame_buffer[1:],
-                                  format='GIF')
+        if not self.frame_buffer:
+            warnings.warn(
+                "You must call render('gif') first. No images to save."
+            )
+        else:
+            print('Saving image to {}'.format(fp))
+            self.frame_buffer[0].save(fp, save_all=True,
+                                    append_images=self.frame_buffer[1:],
+                                    format='GIF',
+                                    loop=0)
         return fp
 
     def _reset_epi_stats(self):
