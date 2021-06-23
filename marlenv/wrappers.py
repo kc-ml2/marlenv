@@ -2,7 +2,6 @@ import sys
 from enum import Enum
 import multiprocessing as mp
 import numpy as np
-from easydict import EasyDict
 
 import gym
 from gym.vector.async_vector_env import AsyncVectorEnv
@@ -188,12 +187,12 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
         env.close()
 
 
-def make_snake(n_env=1, num_snakes=4, **kwargs):
+def make_snake(num_envs=1, num_snakes=4, **kwargs):
     if num_snakes > 1:
         env_wrapper = SingleMultiAgent
     else:
         env_wrapper = SingleAgent
-    if n_env > 1:
+    if num_envs > 1:
         vec_wrapper = AsyncVectorMultiEnv
 
     def _make():
@@ -220,19 +219,19 @@ def make_snake(n_env=1, num_snakes=4, **kwargs):
 
     del dummyenv
 
-    if n_env > 1:
-        env = vec_wrapper([_make for _ in range(n_env)])
+    if num_envs > 1:
+        env = vec_wrapper([_make for _ in range(num_envs)])
     else:
         env = _make()
 
-    properties = EasyDict({
+    properties = {
         'high': high,
         'low': low,
-        'n_env': n_env,
+        'num_envs': num_envs,
         'num_snakes': num_snakes,
         'reorder': True,
         'discrete': discrete,
         'action_info': action_info,
-    })
+    }
 
     return env, observation_shape, action_shape, properties

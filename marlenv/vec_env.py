@@ -75,7 +75,7 @@
 #     def __init__(self, env_fns, start_method=None):
 #         self.waiting = False
 #         self.closed = False
-#         n_envs = len(env_fns)
+#         tn_envs = len(env_fns)
 #
 #         if start_method is None:
 #             # Fork is not a thread safe method (see issue #217)

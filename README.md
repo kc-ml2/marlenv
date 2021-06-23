@@ -81,9 +81,9 @@ Using the make_snake() function
 ```python
 # Automatically chooses wrappers to handle single agent, multi-agent, vector_env, etc.
 env, observation_space, action_space, properties = marlenv.wrappers.make_snake(
-	  n_env=1,      # Number of environments. Used to decided vector env or not
-	  num_snakes=1, # Number of players. Used to determine single/multi agent
-	  **kwargs      # Other input parameters to the environment
+  num_envs=1,  # Number of environments. Used to decided vector env or not
+  num_snakes=1,  # Number of players. Used to determine single/multi agent
+  **kwargs  # Other input parameters to the environment
 )
 ```
 
@@ -109,14 +109,14 @@ The user can change the reward function structure of the snake-game upon instant
 The reward function can be defined using python dictionary as the following
 
 ```python
-custom_rewardf = {
+custom_reward_func = {
 	  'fruit': 1.0,
 	  'kill': 0.0,
 	  'lose': 0.0,
 	  'time': 0.0,
 	  'win': 0.0
 }
-env = gym.make('Snake-v1', reward_func=custom_rewardf)
+env = gym.make('Snake-v1', reward_func=custom_reward_func)
 ```
 
 Each of the each of the keys represent
