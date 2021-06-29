@@ -9,6 +9,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'gym',
+        'mpi4py',
     ],
-    python_requires='>=3.7'
+    python_requires='>=3.6'
 )
