@@ -7,6 +7,8 @@ from marlenv.core.snake import Cell
 class CoopSnakeEnv(SnakeEnv):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # TODO: allow choice for action_dict in SnakeEnv.__init__()
+        self.action_dict = SnakeEnv.action_angle_dict
 
     def step(self, actions):
         """
