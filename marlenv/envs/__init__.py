@@ -4,11 +4,8 @@ register(
     id='Snake-v1',
     entry_point='marlenv.envs.snake_env:SnakeEnv',
 )
-#     max_episode_steps=1e4,
 
-
-# register(
-#     id='SnakeLong-v1',
-#     entry_point='marlenv.envs.snake_env:SnakeEnv',
-#     max_episode_steps=1e6,
-# )
+register(
+    id='CoopSnake-v1',
+    entry_point='marlenv.envs.coop_snake_env:CoopSnakeEnv'
+)
