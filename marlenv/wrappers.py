@@ -187,7 +187,7 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
         env.close()
 
 
-def make_snake(num_envs=1, num_snakes=4, **kwargs):
+def make_snake(num_envs=1, num_snakes=4, id="Snake-v1", **kwargs):
     if num_snakes > 1:
         env_wrapper = SingleMultiAgent
     else:
@@ -196,7 +196,7 @@ def make_snake(num_envs=1, num_snakes=4, **kwargs):
         vec_wrapper = AsyncVectorMultiEnv
 
     def _make():
-        env = gym.make("Snake-v1", num_snakes=num_snakes, **kwargs)
+        env = gym.make(id, num_snakes=num_snakes, **kwargs)
         env = env_wrapper(env)
         return env
 
