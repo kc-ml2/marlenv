@@ -4,6 +4,11 @@ register(
     id='Snake-v1',
     entry_point='marlenv.envs.snake_env:SnakeEnv',
 )
+
+register(
+    id='GraphSnake-v1',
+    entry_point='marlenv.envs.graph_snake_env:GraphSnakeEnv',
+)
 #     max_episode_steps=1e4,
 
 
