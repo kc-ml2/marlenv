@@ -24,7 +24,6 @@ class SnakeEnv(gym.Env):
         'down': 3,
         'up': 4
     }
-    # action_keys = default_action_dict.keys()
 
     action_angle_dict = {
         0: 0.0,
@@ -51,7 +50,7 @@ class SnakeEnv(gym.Env):
             snake_length=3,
             vision_range=None,
             frame_stack=1,
-            observer='human', # if 'snake' three actions, if 'human' five actions
+            observer='snake', # if 'snake' three actions, if 'human' five actions
             *args,
             **kwargs
     ):
