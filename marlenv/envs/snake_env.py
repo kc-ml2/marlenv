@@ -24,7 +24,7 @@ class SnakeEnv(gym.Env):
         'down': 3,
         'up': 4
     }
-    action_keys = default_action_dict.keys()
+    # action_keys = default_action_dict.keys()
 
     action_angle_dict = {
         0: 0.0,
@@ -51,6 +51,7 @@ class SnakeEnv(gym.Env):
             snake_length=3,
             vision_range=None,
             frame_stack=1,
+            observer='human', # if 'snake' three actions, if 'human' five actions
             *args,
             **kwargs
     ):
@@ -58,7 +59,7 @@ class SnakeEnv(gym.Env):
         kwargs
         'reward_dict', 'num_fruits'
         """
-        self.action_dict = SnakeEnv.default_action_dict
+        
 
         reward_dict = kwargs.pop('reward_dict', SnakeEnv.default_reward_dict)
         if reward_dict.keys() != SnakeEnv.reward_keys:
@@ -78,6 +79,7 @@ class SnakeEnv(gym.Env):
         self.snakes: List[Snake]
         self.snake_length = snake_length
         self.vision_range = vision_range
+        self.observer = observer
 
         self.low = 0
         self.image_obs = False
@@ -85,6 +87,10 @@ class SnakeEnv(gym.Env):
             self.high = 255
         else:
             self.high = 1
+        if self.observer=='human':
+            self.action_dict = SnakeEnv.default_action_dict
+        elif self.observer=='snake':
+            self.action_dict = SnakeEnv.action_angle_dict
         self.action_space = gym.spaces.Discrete(len(self.action_dict))
         setattr(self.action_space, 'n',
                 [self.action_space.n] * self.num_snakes)
@@ -193,8 +199,10 @@ class SnakeEnv(gym.Env):
         alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
-                snake.direction = self._next_direction_global(snake.direction,
-                                                              action)
+                if self.observer=='human':
+                    snake.direction = self._next_direction_global(snake.direction, action)
+                elif self.observer=='snake':
+                    snake.direction = self._next_direction(snake.direction, action)
                 new_head_coord = snake.head_coord + snake.direction
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
