@@ -91,9 +91,9 @@ class SnakeEnv(gym.Env):
             self.action_dict = SnakeEnv.default_action_dict
         elif self.observer=='snake':
             self.action_dict = SnakeEnv.action_angle_dict
-        self.action_space = gym.spaces.Discrete(len(self.action_dict))
-        setattr(self.action_space, 'n',
-                [self.action_space.n] * self.num_snakes)
+        self.action_space = gym.spaces.Discrete(
+            len(self.action_dict)*self.num_snakes
+        )
 
         self.frame_stack = frame_stack
         default_ch = 3 if self.image_obs else 8
@@ -101,14 +101,18 @@ class SnakeEnv(gym.Env):
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
-                self.low, self.high,
-                shape=(h, w,  self.obs_ch), dtype=np.uint8)  # 8
+                self.low, 
+                self.high,
+                shape=[h, w,  self.obs_ch]*self.num_snakes, 
+                dtype=np.uint8
+            )
         else:
             self.observation_space = gym.spaces.Box(
-                self.low, self.high,
-                shape=(*self.grid_shape, self.obs_ch), dtype=np.uint8)  # 8
-        setattr(self.observation_space, 'shape',
-                [self.observation_space.shape] * self.num_snakes)
+                self.low, 
+                self.high,
+                shape=[*self.grid_shape, self.obs_ch]*self.num_snakes, 
+                dtype=np.uint8
+            )
 
     def reset(self):
         # Create the grid base
