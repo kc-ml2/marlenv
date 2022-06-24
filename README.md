@@ -52,7 +52,7 @@ Creating an environment
 import gym
 import marlenv
 env = gym.make(
-    'Snake-v1',
+    'snake-v1',
     height=20,       # Height of the grid map
     width=20,        # Width of the grid map
     num_snakes=4,    # Number of snakes to spawn on grid
@@ -65,7 +65,7 @@ env = gym.make(
 Single-agent wrapper
 
 ```python
-env = gym.make('Sanke-v1', num_snakes=1)
+env = gym.make('snake-v1', num_snakes=1)
 env = marlenv.wrappers.SingleAgent(env)
 ```
 
@@ -110,7 +110,7 @@ custom_reward_func = {
     'time': 0.0,
     'win': 0.0
 }
-env = gym.make('Snake-v1', reward_func=custom_reward_func)
+env = gym.make('snake-v1', reward_func=custom_reward_func)
 ```
 
 Each of the each of the keys represent

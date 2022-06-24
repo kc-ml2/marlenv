@@ -14,6 +14,7 @@ from marlenv.core.grid_util import (
     random_empty_coords, draw, make_grid, dfs_sweep_empty,
     rgb_from_grid, image_from_grid)
 from marlenv.core.snake import Direction, Snake, Cell, CellColors
+from marlenv.envs.constants import FEATURE_CHANNEL, RGB_CHANNEL
 
 
 class SnakeEnv(gym.Env):
@@ -90,12 +91,13 @@ class SnakeEnv(gym.Env):
             self.action_dict = SnakeEnv.default_action_dict
         elif self.observer == 'snake':
             self.action_dict = SnakeEnv.action_angle_dict
+
         self.action_space = gym.spaces.Discrete(
             len(self.action_dict) * self.num_snakes
         )
 
         self.frame_stack = frame_stack
-        default_ch = 3 if self.image_obs else 8
+        default_ch = RGB_CHANNEL if self.image_obs else FEATURE_CHANNEL
         self.obs_ch = default_ch * self.frame_stack
         if self.vision_range:
             h = w = self.vision_range * 2 + 1

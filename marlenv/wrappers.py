@@ -187,7 +187,7 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
         env.close()
 
 
-def make_snake(num_envs=1, num_snakes=4, _id="Snake-v1", **kwargs):
+def make_snake(num_envs=1, num_snakes=4, env_id="snake-v1", **kwargs):
     """A function just for me.
 
     :param my_arg: The first of my arguments.
@@ -203,7 +203,7 @@ def make_snake(num_envs=1, num_snakes=4, _id="Snake-v1", **kwargs):
         vec_wrapper = AsyncVectorMultiEnv
 
     def _make():
-        env = gym.make(_id, num_snakes=num_snakes, **kwargs)
+        env = gym.make(env_id, num_snakes=num_snakes, **kwargs)
         env = env_wrapper(env)
         return env
 

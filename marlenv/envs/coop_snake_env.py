@@ -1,5 +1,4 @@
 from .snake_env import SnakeEnv
-import numpy as np
 
 
 class CoopSnakeEnv(SnakeEnv):
@@ -11,6 +10,13 @@ class CoopSnakeEnv(SnakeEnv):
         """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+    def step(self, actions):
+        obs, rews, dones, info = super().step(actions)
+        if self._done_fn(dones):
+            dones = [True] * self.num_snakes
+
+        return obs, rews, dones, info
 
     def _done_fn(self, dones):
         return any(dones)
