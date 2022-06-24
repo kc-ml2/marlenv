@@ -59,8 +59,6 @@ env = gym.make(
     snake_length=3,  # Initial length of the snake at spawn time
     vision_range=5,  # Vision range (both width height), map returned if None
     frame_stack=1,   # Number of observations to stack on return
-    *args,
-    **kwargs
 )
 ```
 
@@ -143,10 +141,5 @@ year = {2021}
 ```
 
 ## Updates
-<<<<<<< HEAD
-=======
-
----
->>>>>>> refactor: remove unnecessary codes
 
 Currently, there is only one environment of multi-agent snake game.
