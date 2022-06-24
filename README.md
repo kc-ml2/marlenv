@@ -11,7 +11,7 @@ Marlenv is an ongoing project and modifications and new environments are expecte
 ![marlenv_0](https://user-images.githubusercontent.com/5464491/116667372-10367800-a9d7-11eb-8098-4bfbd93e9970.gif)
 
 
-### Installation
+## Installation
 
 ---
 
@@ -23,11 +23,11 @@ cd marlenv
 pip install -e .
 ```
 
-### Rules
+## Rules
 
 ---
 
-**Snake Game**
+### Snake Game
 
 Multiple snakes battle on a fixed size grid map.
 
@@ -43,7 +43,12 @@ When there is only one snake remaining, it receives a win reward for every unit 
 
 The snake grows by one pixel when it has eatten a fruit. 
 
-### Examples Input Arguments
+**Observation Types**
+
+1. Image grid : The order is  **'NHWC'**
+2. Graph : 
+
+## Examples Input Arguments
 
 ---
 
@@ -56,14 +61,14 @@ import gym
 import marlenv
 env = gym.make(
     'Snake-v1',
-		height=20,       # Height of the grid map
-		width=20,        # Width of the grid map
-		num_snakes=4,    # Number of snakes to spawn on grid
-		snake_length=3,  # Initail length of the snake at spawn time
-		vision_range=5,  # Vision range (both width height), map returned if None
-	  frame_stack=1,   # Number of observations to stack on return
-		*args,
-		**kwargs
+    height=20,       # Height of the grid map
+    width=20,        # Width of the grid map
+    num_snakes=4,    # Number of snakes to spawn on grid
+    snake_length=3,  # Initail length of the snake at spawn time
+    vision_range=5,  # Vision range (both width height), map returned if None
+    frame_stack=1,   # Number of observations to stack on return
+    *args,
+    **kwargs
 )
 ```
 
@@ -92,12 +97,11 @@ The returned values are
 - env : The environment object
 - observation_space : The processed observation space (according to env type)
 - action_space : The processed action space
-- properties : The properties is EasyDict object that includes
+- properties : The properties is a dict that includes
     - high: highest value that observation can have
     - low: lowest value that the observation can have
-    - n_env: number of environments
+    - num_envs: number of environments
     - num_snakes: number of snakes to be spawned
-    - reorder: True if observation is given 'NHWC', False if 'NCHW'
     - discrete: True if action space is discrete, categorical
     - action_info
         - {action_high, action_low} if continuous action or {action_n} if discrete
@@ -110,11 +114,11 @@ The reward function can be defined using python dictionary as the following
 
 ```python
 custom_reward_func = {
-	  'fruit': 1.0,
-	  'kill': 0.0,
-	  'lose': 0.0,
-	  'time': 0.0,
-	  'win': 0.0
+    'fruit': 1.0,
+    'kill': 0.0,
+    'lose': 0.0,
+    'time': 0.0,
+    'win': 0.0
 }
 env = gym.make('Snake-v1', reward_func=custom_reward_func)
 ```
@@ -129,7 +133,7 @@ Each of the each of the keys represent
 
 Each reward can be both + and - float number
 
-### Testing
+## Testing
 
 ---
 
@@ -137,7 +141,7 @@ Each reward can be both + and - float number
 pytest
 ```
 
-### Citation
+## Citation
 
 ---
 
@@ -150,7 +154,7 @@ year = {2021}
 }
 ```
 
-### Updates
+## Updates
 
 ---
 
