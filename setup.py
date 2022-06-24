@@ -8,8 +8,7 @@ setup(
     author_email='contact@kc-ml2.com',
     packages=find_packages(),
     install_requires=[
-        'gym',
-        'mpi4py',
+        'gym>=0.20.0',
     ],
-    python_requires='>=3.6'
+    python_requires='>=3.8'
 )
