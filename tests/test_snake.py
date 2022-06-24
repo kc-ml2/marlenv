@@ -18,7 +18,7 @@ def snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('snake-v1', num_fruits=4, num_snakes=1,
+    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1,
                    reward_dict=custom_rew)
 
     return env
@@ -33,7 +33,7 @@ def coop_snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('snake-coop-v1', num_fruits=4, num_snakes=1,
+    env = gym.make('SnakeCoop-v1', num_fruits=4, num_snakes=1,
                    reward_dict=custom_rew)
 
     return env
@@ -48,7 +48,7 @@ def graph_snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('snake-graph-v1', num_fruits=4, num_snakes=1,
+    env = gym.make('SnakeGraph-v1', num_fruits=4, num_snakes=1,
                    reward_dict=custom_rew)
 
     return env

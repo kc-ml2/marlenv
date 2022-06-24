@@ -187,7 +187,7 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
         env.close()
 
 
-def make_snake(num_envs=1, num_snakes=4, env_id="snake-v1", **kwargs):
+def make_snake(num_envs=1, num_snakes=4, env_id="Snake-v1", **kwargs):
     """A function just for me.
 
     :param my_arg: The first of my arguments.
