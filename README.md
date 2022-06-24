@@ -79,9 +79,9 @@ Using the make_snake() function
 ```python
 # Automatically chooses wrappers to handle single agent, multi-agent, vector_env, etc.
 env, observation_space, action_space, properties = marlenv.wrappers.make_snake(
-  num_envs=1,  # Number of environments. Used to decided vector env or not
-  num_snakes=1,  # Number of players. Used to determine single/multi agent
-  **kwargs  # Other input parameters to the environment
+    num_envs=1,  # Number of environments. Used to decided vector env or not
+    num_snakes=1,  # Number of players. Used to determine single/multi agent
+    **kwargs  # Other input parameters to the environment
 )
 ```
 
