@@ -1,7 +1,5 @@
 # Marlenv
 
----
-
 Marlenv is a multi-agent environment for reinforcement learning, based on the OpenAI [gym](https://github.com/openai/gym) convention. 
 
 The function names such as reset(), step() are consistent but the return format is different. Unlike the single agent environments, the multi-agent environments included in this repo formats all returns in a list format, where each element corresponds to each agent in the environment. A similar rule applies to the input action where the action should be a list of actions with a length of number of agents. 
@@ -13,8 +11,6 @@ Marlenv is an ongoing project and modifications and new environments are expecte
 
 ## Installation
 
----
-
 clone marlenv repo and use pip to install
 
 ```bash
@@ -25,7 +21,6 @@ pip install -e .
 
 ## Rules
 
----
 
 ### Snake Game
 
@@ -49,8 +44,6 @@ Image grid : The order is  **'NHWC'**
 
 
 ## Examples Input Arguments
-
----
 
 **Snake Game** 
 
@@ -135,15 +128,11 @@ Each reward can be both + and - float number
 
 ## Testing
 
----
-
 ```python
 pytest
 ```
 
 ## Citation
-
----
 
 ```python
 @MISC{marlenv2021,
@@ -155,7 +144,5 @@ year = {2021}
 ```
 
 ## Updates
-
----
 
 Currently, there is only one environment of multi-agent snake game.
