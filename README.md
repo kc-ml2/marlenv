@@ -1,6 +1,3 @@
-| :point_up:    | env_id string changed to comply with gym convention |
-|---------------|:------------------------|
-
 # Marlenv
 
 Marlenv is a multi-agent environment for reinforcement learning, based on the OpenAI [gym](https://github.com/openai/gym) convention. 
