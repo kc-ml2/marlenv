@@ -45,7 +45,7 @@ Image grid : The order is  **'NHWC'**
 
 ## Examples Input Arguments
 
-**Snake Game** 
+### Snake Game
 
 Creating an environment
 
