@@ -45,8 +45,8 @@ The snake grows by one pixel when it has eatten a fruit.
 
 **Observation Types**
 
-1. Image grid : The order is  **'NHWC'**
-2. Graph : 
+Image grid : The order is  **'NHWC'**
+
 
 ## Examples Input Arguments
 
