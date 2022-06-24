@@ -42,7 +42,6 @@ The snake grows by one pixel when it has eatten a fruit.
 
 Image grid : The order is  **'NHWC'**
 
-
 ## Examples Input Arguments
 
 ### Snake Game
@@ -144,5 +143,10 @@ year = {2021}
 ```
 
 ## Updates
+<<<<<<< HEAD
+=======
+
+---
+>>>>>>> refactor: remove unnecessary codes
 
 Currently, there is only one environment of multi-agent snake game.

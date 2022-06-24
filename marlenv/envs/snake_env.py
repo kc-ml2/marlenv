@@ -27,8 +27,8 @@ class SnakeEnv(gym.Env):
 
     action_angle_dict = {
         0: 0.0,
-        1: math.pi/2.0,
-        2: -math.pi/2.0
+        1: math.pi / 2.0,
+        2: -math.pi / 2.0
     }
 
     default_reward_dict = {
@@ -50,7 +50,8 @@ class SnakeEnv(gym.Env):
             snake_length=3,
             vision_range=None,
             frame_stack=1,
-            observer='snake', # if 'snake' three actions, if 'human' five actions
+            observer='snake',
+            # if 'snake' three actions, if 'human' five actions
             *args,
             **kwargs
     ):
@@ -58,7 +59,6 @@ class SnakeEnv(gym.Env):
         kwargs
         'reward_dict', 'num_fruits'
         """
-        
 
         reward_dict = kwargs.pop('reward_dict', SnakeEnv.default_reward_dict)
         if reward_dict.keys() != SnakeEnv.reward_keys:
@@ -86,12 +86,12 @@ class SnakeEnv(gym.Env):
             self.high = 255
         else:
             self.high = 1
-        if self.observer=='human':
+        if self.observer == 'human':
             self.action_dict = SnakeEnv.default_action_dict
-        elif self.observer=='snake':
+        elif self.observer == 'snake':
             self.action_dict = SnakeEnv.action_angle_dict
         self.action_space = gym.spaces.Discrete(
-            len(self.action_dict)*self.num_snakes
+            len(self.action_dict) * self.num_snakes
         )
 
         self.frame_stack = frame_stack
@@ -100,16 +100,16 @@ class SnakeEnv(gym.Env):
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
-                self.low, 
+                self.low,
                 self.high,
-                shape=[h, w,  self.obs_ch]*self.num_snakes, 
+                shape=[h, w, self.obs_ch] * self.num_snakes,
                 dtype=np.uint8
             )
         else:
             self.observation_space = gym.spaces.Box(
-                self.low, 
+                self.low,
                 self.high,
-                shape=[*self.grid_shape, self.obs_ch]*self.num_snakes, 
+                shape=[*self.grid_shape, self.obs_ch] * self.num_snakes,
                 dtype=np.uint8
             )
 
@@ -202,14 +202,17 @@ class SnakeEnv(gym.Env):
         alive_snakes = []
         for snake, action in zip(self.snakes, actions):
             if snake.alive:
-                if self.observer=='human':
-                    snake.direction = self._next_direction_global(snake.direction, action)
-                elif self.observer=='snake':
-                    snake.direction = self._next_direction(snake.direction, action)
+                if self.observer == 'human':
+                    snake.direction = self._next_direction_global(
+                        snake.direction, action)
+                elif self.observer == 'snake':
+                    snake.direction = self._next_direction(snake.direction,
+                                                           action)
                 new_head_coord = snake.head_coord + snake.direction
                 next_head_coords[new_head_coord].append(snake.idx)
                 alive_snakes.append(snake.idx)
-        dead_idxes, fruit_idxes, fruit_taken = self._check_collision(next_head_coords)
+        dead_idxes, fruit_idxes, fruit_taken = self._check_collision(
+            next_head_coords)
 
         self.alive_snakes -= len(dead_idxes)
         for idx in dead_idxes:
@@ -273,7 +276,7 @@ class SnakeEnv(gym.Env):
         if self.episode_length >= self.max_episode_steps:
             dones = [True] * self.num_snakes
 
-        if all(dones):
+        if self._done_fn(dones):
             sorted_scores = np.unique(np.sort(self.epi_scores)[::-1])
             ranks = np.array([0 for _ in range(self.num_snakes)])
             base_rank = 1
@@ -293,6 +296,9 @@ class SnakeEnv(gym.Env):
 
         return obs, rews, dones, info
 
+    def _done_fn(self, dones):
+        return all(dones)
+
     def save_gif(self, fp=None):
         if fp is None:
             curr_dir = os.getcwd()
@@ -307,9 +313,9 @@ class SnakeEnv(gym.Env):
         else:
             print('Saving image to {}'.format(fp))
             self.frame_buffer[0].save(fp, save_all=True,
-                                    append_images=self.frame_buffer[1:],
-                                    format='GIF',
-                                    loop=0)
+                                      append_images=self.frame_buffer[1:],
+                                      format='GIF',
+                                      loop=0)
         return fp
 
     def _reset_epi_stats(self):
@@ -386,10 +392,10 @@ class SnakeEnv(gym.Env):
                 start = crop_range_min - head_pos + vision_range
                 end = crop_range_max - head_pos + vision_range
                 cropped_full_obs = full_obs[
-                    crop_range_min[0]:crop_range_max[0]+1,
-                    crop_range_min[1]:crop_range_max[1]+1, :]
-                cropped_obs[start[0]:end[0]+1,
-                            start[1]:end[1]+1, :] = cropped_full_obs
+                                   crop_range_min[0]:crop_range_max[0] + 1,
+                                   crop_range_min[1]:crop_range_max[1] + 1, :]
+                cropped_obs[start[0]:end[0] + 1,
+                start[1]:end[1] + 1, :] = cropped_full_obs
                 cropped_encoded_obs.append(cropped_obs)
             encoded_obs = cropped_encoded_obs
 

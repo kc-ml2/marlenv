@@ -1,16 +1,12 @@
 import io
 import os
-import sys
 import shutil
-
-from PIL import Image
+import sys
 
 import gym
+import marlenv
 import pytest
-
-from marlenv.envs.snake_env import SnakeEnv
-from marlenv.envs.coop_snake_env import CoopSnakeEnv
-from marlenv.envs.graph_snake_env import GraphSnakeEnv
+from PIL import Image
 
 
 @pytest.fixture
@@ -22,9 +18,11 @@ def snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew)
+    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1,
+                   reward_dict=custom_rew)
 
     return env
+
 
 @pytest.fixture
 def coop_snake_env():
@@ -35,9 +33,11 @@ def coop_snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('CoopSnake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew)
+    env = gym.make('CoopSnake-v1', num_fruits=4, num_snakes=1,
+                   reward_dict=custom_rew)
 
     return env
+
 
 @pytest.fixture
 def graph_snake_env():
@@ -48,9 +48,11 @@ def graph_snake_env():
         'win': 4.0,
         'time': 0.1,
     }
-    env = gym.make('GraphSnake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew)
+    env = gym.make('GraphSnake-v1', num_fruits=4, num_snakes=1,
+                   reward_dict=custom_rew)
 
     return env
+
 
 def rollout(env, n=100, render_mode=None):
     num_snakes = env.num_snakes
@@ -69,13 +71,16 @@ def test_snake_env_rollout(snake_env):
     n_rollouts = 100
     rollout(snake_env, n=n_rollouts)
 
+
 def test_coop_snake_env_rollout(coop_snake_env):
     n_rollouts = 100
     rollout(coop_snake_env, n=n_rollouts)
 
+
 def test_graph_env_rollout(graph_snake_env):
     n_rollouts = 100
     rollout(graph_snake_env, n=n_rollouts)
+
 
 @pytest.fixture
 def processed_snake_env(snake_env):
@@ -104,5 +109,3 @@ def test_save_gif_fileobj(processed_snake_env):
         output = env.save_gif(fileobj)
 
     assert sys.getsizeof(output) > 0
-
-

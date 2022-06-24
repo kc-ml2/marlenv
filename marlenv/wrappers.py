@@ -25,7 +25,7 @@ class SingleAgent(gym.Wrapper):
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
                 self.low, self.high,
-                shape=(h, w,  self.obs_ch), dtype=np.uint8)  # 8
+                shape=(h, w, self.obs_ch), dtype=np.uint8)  # 8
         else:
             self.observation_space = gym.spaces.Box(
                 self.low, self.high,
@@ -48,7 +48,7 @@ class SingleMultiAgent(gym.Wrapper):
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
                 self.low, self.high,
-                shape=(self.num_snakes, h, w,  self.obs_ch), dtype=np.uint8)
+                shape=(self.num_snakes, h, w, self.obs_ch), dtype=np.uint8)
         else:
             self.observation_space = gym.spaces.Box(
                 self.low, self.high,
@@ -187,7 +187,14 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
         env.close()
 
 
-def make_snake(num_envs=1, num_snakes=4, id="Snake-v1", **kwargs):
+def make_snake(num_envs=1, num_snakes=4, _id="Snake-v1", **kwargs):
+    """A function just for me.
+
+    :param my_arg: The first of my arguments.
+    :param my_other_arg: The second of my arguments.
+
+    :returns: A message (just for me, of course).
+    """
     if num_snakes > 1:
         env_wrapper = SingleMultiAgent
     else:
@@ -196,7 +203,7 @@ def make_snake(num_envs=1, num_snakes=4, id="Snake-v1", **kwargs):
         vec_wrapper = AsyncVectorMultiEnv
 
     def _make():
-        env = gym.make(id, num_snakes=num_snakes, **kwargs)
+        env = gym.make(_id, num_snakes=num_snakes, **kwargs)
         env = env_wrapper(env)
         return env
 
@@ -213,8 +220,10 @@ def make_snake(num_envs=1, num_snakes=4, id="Snake-v1", **kwargs):
         discrete = True
 
     if 'Box' in str(type(dummyenv.action_space)):
-        action_info = {'action_high': dummyenv.action_space.high,
-                       'action_low': dummyenv.action_space.low}
+        action_info = {
+            'action_high': dummyenv.action_space.high,
+            'action_low': dummyenv.action_space.low
+        }
         discrete = False
 
     del dummyenv
@@ -229,7 +238,6 @@ def make_snake(num_envs=1, num_snakes=4, id="Snake-v1", **kwargs):
         'low': low,
         'num_envs': num_envs,
         'num_snakes': num_snakes,
-        'reorder': True,
         'discrete': discrete,
         'action_info': action_info,
     }
