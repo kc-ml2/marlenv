@@ -144,7 +144,7 @@ class SnakeEnv(gym.Env):
         self._reset_epi_stats()
         self.episode_length = 0
 
-        return obs
+        return np.array(obs, dtype=np.uint8)
 
     def seed(self, seed=42):
         self.np_random, seed = seeding.np_random(seed)
@@ -297,7 +297,7 @@ class SnakeEnv(gym.Env):
 
             self._reset_epi_stats()
 
-        return obs, rews, dones, info
+        return np.array(obs, dtype=np.uint8), rews, dones, info
 
     def _done_fn(self, dones):
         return all(dones)
@@ -516,3 +516,7 @@ class SnakeEnv(gym.Env):
             elif action == 2:
                 new_direction = Direction.RIGHT
         return new_direction
+
+import marlenv
+e=gym.make('Snake-v1')
+o=e.reset()

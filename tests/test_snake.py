@@ -19,7 +19,7 @@ def snake_env():
         'time': 0.1,
     }
     env = gym.make('Snake-v1', num_fruits=4, num_snakes=1,
-                   reward_dict=custom_rew)
+                   reward_dict=custom_rew, disable_env_checker=True)
 
     return env
 
@@ -34,7 +34,7 @@ def coop_snake_env():
         'time': 0.1,
     }
     env = gym.make('SnakeCoop-v1', num_fruits=4, num_snakes=1,
-                   reward_dict=custom_rew)
+                   reward_dict=custom_rew, disable_env_checker=True)
 
     return env
 
@@ -49,7 +49,7 @@ def graph_snake_env():
         'time': 0.1,
     }
     env = gym.make('SnakeGraph-v1', num_fruits=4, num_snakes=1,
-                   reward_dict=custom_rew)
+                   reward_dict=custom_rew, disable_env_checker=True)
 
     return env
 
@@ -62,7 +62,7 @@ def rollout(env, n=100, render_mode=None):
     for _ in range(n):
         if not all(dones):
             if render_mode:
-                env.render(render_mode)
+                env.unwrapped.render(render_mode)
             ac = [env.action_space.sample() for _ in range(num_snakes)]
             obs, rews, dones, _ = env.step(ac)
 
