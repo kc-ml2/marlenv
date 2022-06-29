@@ -99,19 +99,20 @@ class SnakeEnv(gym.Env):
         self.frame_stack = frame_stack
         default_ch = RGB_CHANNEL if self.image_obs else FEATURE_CHANNEL
         self.obs_ch = default_ch * self.frame_stack
+
         if self.vision_range:
             h = w = self.vision_range * 2 + 1
             self.observation_space = gym.spaces.Box(
                 self.low,
                 self.high,
-                shape=[h, w, self.obs_ch] * self.num_snakes,
+                shape=[self.num_snakes, h, w, self.obs_ch],
                 dtype=np.uint8
             )
         else:
             self.observation_space = gym.spaces.Box(
                 self.low,
                 self.high,
-                shape=[*self.grid_shape, self.obs_ch] * self.num_snakes,
+                shape=[self.num_snakes, *self.grid_shape, self.obs_ch],
                 dtype=np.uint8
             )
 
