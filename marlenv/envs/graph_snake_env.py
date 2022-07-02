@@ -60,6 +60,8 @@ class GraphSnakeEnv(SnakeEnv):
         sqrt2 = math.sqrt(2)
         snake_idx = 0
         for snake in self.snakes:  # for each snake
+            if not snake.alive:
+                continue
             proc_ob = []
             angle = math.atan2(snake.direction.value[1],
                                snake.direction.value[0])
@@ -73,10 +75,9 @@ class GraphSnakeEnv(SnakeEnv):
                 for i in range(vision_range):
                     temp_ob = obs[snake_idx][head[0] + dx[0] * (i + 1)][
                         head[1] + dx[1] * (i + 1)]
-                    if temp_ob[0] == 1:  # up to the wall
-                        proc_ob[-1] += temp_ob / (i + 1)
-                        break
                     proc_ob[-1] += temp_ob / (i + 1)
+                    if temp_ob[0] == 1:  # up to the wall
+                        break
             for l in [(0, 1), (0, 2)]:  # each of two diagonal directions
                 dx = [(int(math.cos(angle + self.action_dict[l[q]])),
                        int(math.sin(angle + self.action_dict[l[q]]))) for q in
