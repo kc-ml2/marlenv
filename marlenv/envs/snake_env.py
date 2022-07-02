@@ -516,7 +516,3 @@ class SnakeEnv(gym.Env):
             elif action == 2:
                 new_direction = Direction.RIGHT
         return new_direction
-
-import marlenv
-e=gym.make('Snake-v1')
-o=e.reset()
