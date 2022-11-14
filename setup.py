@@ -10,5 +10,6 @@ setup(
     install_requires=[
         'gym==0.24.1',
     ],
-    python_requires='>=3.8'
+    python_requires='>=3.8',
+    long_description_content_type="text/markdown",
 )
