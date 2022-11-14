@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='marlenv',
-    version='1.0.0',
+    version='0.0.1',
     url='https://github.com/kc-ml2/marlenv',
     author='Tae Min Ha, Daniel Nam, Won Seok Jung',
     author_email='contact@kc-ml2.com',
