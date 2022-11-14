@@ -7,7 +7,7 @@ with open("README.md") as f:
         
 setup(
     name='marlenv',
-    version='1.0.0',
+    version='1.0.0test2',
     url='https://github.com/kc-ml2/marlenv',
     author='Tae Min Ha, Daniel Nam, Won Seok Jung',
     author_email='contact@kc-ml2.com',
