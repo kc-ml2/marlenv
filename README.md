@@ -132,7 +132,8 @@ pytest
 ## Citation
 
 ```python
-@MISC{marlenv2021,
+@MISC{
+    marlenv2021,
     author =   {ML2},
     title =    {Marlenv, Multi-agent Reinforcement Learning Environment},
     howpublished = {\url{http://github.com/kc-ml2/marlenv}},
