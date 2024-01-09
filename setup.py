@@ -8,7 +8,7 @@ setup(
     author_email='contact@kc-ml2.com',
     packages=find_packages(),
     install_requires=[
-        'gym==0.24.1',
+        'gym==0.23.1',
     ],
 #    python_requires='>=3.8',
     long_description_content_type="text/markdown",
