@@ -195,12 +195,13 @@ def make_snake(num_envs=1, num_snakes=4, env_id="Snake-v1", **kwargs):
 
     :returns: A message (just for me, of course).
     """
+    from gym.vector.async_vector_env import AsyncVectorEnv
     if num_snakes > 1:
         env_wrapper = SingleMultiAgent
     else:
         env_wrapper = SingleAgent
     if num_envs > 1:
-        vec_wrapper = AsyncVectorMultiEnv
+        vec_wrapper = AsyncVectorEnv #AsyncVectorMultiEnv
 
     def _make():
         env = gym.make(env_id, num_snakes=num_snakes, **kwargs)
