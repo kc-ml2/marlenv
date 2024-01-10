@@ -97,48 +97,6 @@ class AsyncVectorMultiEnv(AsyncVectorEnv):
         return self.render_wait()
 
 
-def _worker(index, env_fn, pipe, parent_pipe, shared_memory, error_queue):
-    assert shared_memory is None
-    env = env_fn()
-    parent_pipe.close()
-    try:
-        while True:
-            command, data = pipe.recv()
-            if command == 'reset':
-                observation = env.reset()
-                pipe.send((observation, True))
-            elif command == 'step':
-                observation, reward, done, info = env.step(data)
-                if type(done) == bool:
-                    cond = done
-                else:
-                    cond = all(done)
-                if cond:
-                    observation = env.reset()
-                pipe.send(((observation, reward, done, info), True))
-            elif command == 'seed':
-                env.seed(data)
-                pipe.send((None, True))
-            elif command == 'close':
-                pipe.send((None, True))
-                break
-            elif command == 'render':
-                img = env.render('rgb_array')
-                pipe.send((img, True))
-            elif command == '_check_observation_space':
-                pipe.send((data == env.observation_space, True))
-            else:
-                raise RuntimeError(
-                    'Received unknown command `{0}`. Must '
-                    'be one of {`reset`, `step`, `seed`, `close`, '
-                    '`_check_observation_space`}.'.format(command))
-    except (KeyboardInterrupt, Exception):
-        error_queue.put((index,) + sys.exc_info()[:2])
-        pipe.send((None, False))
-    finally:
-        env.close()
-
-
 def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
                           error_queue):
     assert shared_memory is not None
@@ -150,8 +108,8 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
             command, data = pipe.recv()
             if command == 'reset':
                 observation = env.reset()
-                write_to_shared_memory(index, observation, shared_memory,
-                                       observation_space)
+                write_to_shared_memory(observation_space, index, observation, shared_memory,
+                                       )
                 pipe.send((None, True))
             elif command == 'step':
                 observation, reward, done, info = env.step(data)
@@ -161,8 +119,8 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
                     cond = all(done)
                 if cond:
                     observation = env.reset()
-                write_to_shared_memory(index, observation, shared_memory,
-                                       observation_space)
+                write_to_shared_memory(observation_space, index, observation, shared_memory,
+                                       )
                 pipe.send(((None, reward, done, info), True))
             elif command == 'seed':
                 env.seed(data)
@@ -173,8 +131,13 @@ def _worker_shared_memory(index, env_fn, pipe, parent_pipe, shared_memory,
             elif command == 'render':
                 img = env.render('rgb_array')
                 pipe.send((img, True))
-            elif command == '_check_observation_space':
-                pipe.send((data == observation_space, True))
+            elif command == '_check_spaces':
+                pipe.send(
+                    (
+                        (data[0] == env.observation_space, data[1] == env.action_space), 
+                        True
+                    )
+                )
             else:
                 raise RuntimeError(
                     'Received unknown command `{0}`. Must '
@@ -201,7 +164,7 @@ def make_snake(num_envs=1, num_snakes=4, env_id="Snake-v1", **kwargs):
     else:
         env_wrapper = SingleAgent
     if num_envs > 1:
-        vec_wrapper = AsyncVectorEnv #AsyncVectorMultiEnv
+        vec_wrapper = AsyncVectorMultiEnv
 
     def _make():
         env = gym.make(env_id, num_snakes=num_snakes, **kwargs)
